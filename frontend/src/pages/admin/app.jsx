@@ -1,13 +1,14 @@
 import React from 'react'
 import { BrowserRouter as Router,Routes,Route  } from 'react-router-dom';
-import Dashboard from './dashboard';
+import KanbanChart from './kandenchart';
 
 export default function Adminapp() {
   return (
     <div>
       <Router>
         <Routes>
-            <Route path='/' element={<dashboard/>}/>
+            <Route path='/' element={<KanbanChart/>}/>
+
 
         </Routes>
       </Router>
