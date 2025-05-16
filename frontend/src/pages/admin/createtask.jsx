@@ -1,27 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import taskService from '../../services/taskService';
+import projectService from '../../services/projectService';
 import { FiCalendar, FiUsers, FiFlag, FiClock, FiList, FiLink } from 'react-icons/fi';
 
 export default function CreateTask() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     project: '',
-    assignee: '',
+    assignees: [],
     startDate: '',
     dueDate: '',
     estimatedHours: '',
     priority: 'medium',
     status: 'to-do',
-    dependencies: ''
+    dependencies: []
   });
-
-  // Sample project data - in a real app, this would come from an API
-  const projects = [
-    { id: 1, name: 'Website Redesign' },
-    { id: 2, name: 'Mobile App Development' },
-    { id: 3, name: 'Marketing Campaign' }
-  ];
-
+  
+  const [assignee, setAssignee] = useState('');
+  const [dependency, setDependency] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // For project dropdown
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  
   // Sample team members - in a real app, this would come from an API
   const teamMembers = [
     { id: 1, name: 'John Doe' },
@@ -30,6 +37,22 @@ export default function CreateTask() {
     { id: 4, name: 'Emily Davis' }
   ];
 
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await projectService.getAllProjects();
+        setProjects(data.projects || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -37,12 +60,63 @@ export default function CreateTask() {
       [name]: value
     }));
   };
+  
+  const handleAddAssignee = () => {
+    if (assignee.trim() !== '' && !formData.assignees.includes(assignee.trim())) {
+      setFormData({
+        ...formData,
+        assignees: [...formData.assignees, assignee.trim()]
+      });
+      setAssignee('');
+    }
+  };
 
-  const handleSubmit = (e) => {
+  const handleRemoveAssignee = (member) => {
+    setFormData({
+      ...formData,
+      assignees: formData.assignees.filter((m) => m !== member)
+    });
+  };
+
+  const handleAddDependency = () => {
+    if (dependency.trim() !== '' && !formData.dependencies.includes(dependency.trim())) {
+      setFormData({
+        ...formData,
+        dependencies: [...formData.dependencies, dependency.trim()]
+      });
+      setDependency('');
+    }
+  };
+
+  const handleRemoveDependency = (dep) => {
+    setFormData({
+      ...formData,
+      dependencies: formData.dependencies.filter((d) => d !== dep)
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend API
-    console.log('Task data submitted:', formData);
-    // Reset form or redirect
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+    
+    try {
+      // Send data to backend
+      const response = await taskService.createTask(formData);
+      console.log('Task created:', response);
+      setSuccess('Task created successfully!');
+      
+      // Reset form or redirect after short delay
+      setTimeout(() => {
+        navigate('/admin/tasks');
+      }, 2000);
+    } catch (err) {
+      console.error('Error creating task:', err);
+      setError(err.message || 'Failed to create task. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -228,12 +302,25 @@ export default function CreateTask() {
         </div>
 
         {/* Submit Button */}
+        {error && (
+          <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-4 p-2 bg-green-100 border border-green-400 text-green-700 rounded">
+            {success}
+          </div>
+        )}
+        
         <div className="flex justify-end">
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Task
+            {isSubmitting ? "Creating Task..." : "Create Task"}
           </button>
         </div>
       </form>

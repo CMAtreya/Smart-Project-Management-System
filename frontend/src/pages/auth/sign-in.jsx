@@ -1,16 +1,39 @@
 import { useEffect, useState } from "react";
 import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import Loader from "../../Loader";
 import ToggleDarkMode from "../../ToggleDarkMode";
+import authService from "../../services/authService";
 
 function Signin() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignIn = () => {
-  alert(`Email: ${email}\nPassword: ${password}`);
-};
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    
+    try {
+      const response = await authService.login({ email, password });
+      console.log("Login successful", response);
+      // Redirect to admin dashboard if user is admin, otherwise to user dashboard
+      if (response.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message || "Invalid email or password");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1800);
@@ -71,11 +94,18 @@ function Signin() {
             <a href="#" className="text-blue-600 hover:underline">Forgot Password?</a>
           </div>
 
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
           <button
             onClick={handleSignIn}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition duration-300 shadow-md hover:shadow-lg"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            SIGN IN
+            {isSubmitting ? "SIGNING IN..." : "SIGN IN"}
           </button>
 
           <div className="mt-6 text-center text-sm">Or sign in with</div>
