@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
@@ -15,6 +16,7 @@ export default function App() {
   const [adminCode, setAdminCode] = useState("");
   const [errors, setErrors] = useState({});
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -35,7 +37,12 @@ export default function App() {
       setErrors(errs);
     } else {
       setErrors({});
-      alert(`Logged in as ${userType.toUpperCase()}`);
+      if (userType === "employee") {
+        navigate("/user/dashboard");
+      } else {
+        // Add admin redirect logic here if needed
+        alert(`Logged in as ${userType.toUpperCase()}`);
+      }
     }
   };
 
