@@ -23,7 +23,7 @@ const initialChats = {
   ],
 };
 
-export default function App() {
+export default function Chat() {
   const [selectedUserId, setSelectedUserId] = useState(1);
   const [chats, setChats] = useState(initialChats);
   const [message, setMessage] = useState("");

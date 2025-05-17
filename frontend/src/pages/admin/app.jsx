@@ -1,20 +1,16 @@
 import React from "react";
-import { BrowserRouter, Routes, Route} from "react-router-dom";
 import Dashboard from "./mainDashboard";
-
 import ChartPage from "./charts";
+import Calender from "./calender";
+import Chat from './chatpage';
 
-
+// This component is no longer used for routing
+// Routes have been moved to the main App.jsx file
 function Adminapp() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />}>
-          <Route path="/chart" element={<ChartPage/>} />
-         
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <div className="admin-container">
+      <Dashboard />
+    </div>
   );
 }
 

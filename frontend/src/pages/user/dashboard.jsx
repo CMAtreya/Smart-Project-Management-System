@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   return (
@@ -11,16 +12,24 @@ export default function Dashboard() {
           </div>
         </div>
         <nav className="flex flex-col gap-4">
-          {["Home", "Chart", "Finished Project", "Calendar", "Assigned Work", "Team Chats"].map((item, idx) => (
-            <button
-              key={idx}
-              className={`text-left py-2 px-4 rounded-xl ${
-                item === "Home" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-blue-900"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
+          <Link to="/user/dashboard">
+            <button className="text-left py-2 px-4 rounded-xl bg-blue-600 text-white">Home</button>
+          </Link>
+          <Link to="/user/chart">
+            <button className="text-left py-2 px-4 rounded-xl text-slate-300 hover:bg-blue-900">Chart</button>
+          </Link>
+          <Link to="/user/finishedproject">
+            <button className="text-left py-2 px-4 rounded-xl text-slate-300 hover:bg-blue-900">Finished Project</button>
+          </Link>
+          <Link to="/user/calendar">
+            <button className="text-left py-2 px-4 rounded-xl text-slate-300 hover:bg-blue-900">Calendar</button>
+          </Link>
+          <Link to="/user/assignwork">
+            <button className="text-left py-2 px-4 rounded-xl text-slate-300 hover:bg-blue-900">Assigned Work</button>
+          </Link>
+          <Link to="/user/chat">
+            <button className="text-left py-2 px-4 rounded-xl text-slate-300 hover:bg-blue-900">Team Chats</button>
+          </Link>
         </nav>
       </div>
 
@@ -28,7 +37,7 @@ export default function Dashboard() {
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">ADMIN DASHBOARD</h1>
+          <h1 className="text-3xl font-bold">User DASHBOARD</h1>
           <div className="mt-2 h-2 w-full bg-slate-700 rounded-full">
             <div className="h-full w-[80%] bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
           </div>

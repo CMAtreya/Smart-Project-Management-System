@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 
-
-
 const kanbanData = {
   "To Do": ["Design UI", "Define endpoints"],
   "In Progress": ["Develop API", "Set up DB"],
@@ -33,7 +31,10 @@ export default function ChartPage() {
       {isKanban ? (
         <div className="grid grid-cols-3 gap-4">
           {Object.entries(kanbanData).map(([column, tasks]) => (
-            <Card key={column} className="bg-slate-800 p-4 rounded-xl shadow-xl">
+            <div
+              key={column}
+              className="bg-slate-800 p-4 rounded-xl shadow-xl"
+            >
               <h2 className="text-xl font-semibold mb-4">{column}</h2>
               {tasks.map((task, idx) => (
                 <div
@@ -43,7 +44,7 @@ export default function ChartPage() {
                   {task}
                 </div>
               ))}
-            </Card>
+            </div>
           ))}
         </div>
       ) : (

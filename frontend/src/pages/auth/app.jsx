@@ -1,16 +1,12 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-
 import Mainpage from './mainpage';
-import Signup from './sign-up';
-import Signin from './sign-in';
 
+// This component is no longer used for routing
+// Routes have been moved to the main App.jsx file
 export default function AuthApp() {
   return (
-    <Routes>
-      <Route path="/" element={<Mainpage />} />
-      <Route path="/signin" element={<Signin />} />
-      <Route path="/signup" element={<Signup />} />
-    </Routes>
+    <div className="auth-container">
+      <Mainpage />
+    </div>
   );
 }

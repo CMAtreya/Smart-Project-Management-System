@@ -1,52 +1,50 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
+// Card component definition
+function Card({ children, className }) {
+  return <div className={`p-4 bg-white shadow-md rounded ${className}`}>{children}</div>;
+}
 
-
-const kanbanData = {
-  "To Do": ["Design UI", "Define endpoints"],
-  "In Progress": ["Develop API", "Set up DB"],
-  "Done": ["Create wireframes"],
-};
-
-const ganttData = [
-  { task: "Design UI", start: 1, end: 3, color: "bg-blue-500" },
-  { task: "Develop API", start: 2, end: 5, color: "bg-red-500" },
-  { task: "Set up DB", start: 3, end: 6, color: "bg-green-500" },
-  { task: "Create wireframes", start: 1, end: 2, color: "bg-purple-500" },
-];
-
-export default function ChartPage() {
-  const [isKanban, setIsKanban] = useState(true);
+function ChartPage() {
+  const [view, setView] = useState('kanban');
+  const kanbanData = [
+    { title: 'To Do', tasks: ['Task 1', 'Task 2'] },
+    { title: 'In Progress', tasks: ['Task 3'] },
+    { title: 'Done', tasks: ['Task 4', 'Task 5'] }
+  ];
+  const ganttData = [
+    { task: 'Task 1', start: 0, end: 3, color: 'bg-blue-500' },
+    { task: 'Task 2', start: 2, end: 5, color: 'bg-green-500' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6 text-white">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Chart Dashboard</h1>
-        <button
-          onClick={() => setIsKanban(!isKanban)}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
-        >
-          {isKanban ? "Switch to Gantt Chart" : "Switch to Kanban Chart"}
-        </button>
+    <div>
+      <div className="flex space-x-4 mb-4">
+        <button onClick={() => setView('kanban')} className="px-4 py-2 bg-blue-500 text-white rounded">Kanban</button>
+        <button onClick={() => setView('gantt')} className="px-4 py-2 bg-green-500 text-white rounded">Gantt</button>
       </div>
 
-      {isKanban ? (
+      <Card className="mb-4">
+        <h2 className="text-lg font-bold">Chart Overview</h2>
+        <p>This is a summary of the chart data.</p>
+      </Card>
+
+      {view === 'kanban' && (
         <div className="grid grid-cols-3 gap-4">
-          {Object.entries(kanbanData).map(([column, tasks]) => (
-            <Card key={column} className="bg-slate-800 p-4 rounded-xl shadow-xl">
-              <h2 className="text-xl font-semibold mb-4">{column}</h2>
-              {tasks.map((task, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-700 p-2 rounded-lg mb-2 shadow-md hover:bg-slate-600 transition"
-                >
-                  {task}
-                </div>
-              ))}
+          {kanbanData.map((column, index) => (
+            <Card key={index} className="">
+              <h3 className="font-bold mb-2">{column.title}</h3>
+              <ul>
+                {column.tasks.map((task, i) => (
+                  <li key={i}>{task}</li>
+                ))}
+              </ul>
             </Card>
           ))}
         </div>
-      ) : (
+      )}
+
+      {view === 'gantt' && (
         <div className="space-y-4">
           {ganttData.map((item, index) => (
             <div key={index} className="space-y-1">
@@ -72,3 +70,5 @@ export default function ChartPage() {
     </div>
   );
 }
+
+export default ChartPage;

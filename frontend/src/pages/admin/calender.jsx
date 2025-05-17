@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function App() {
+export default function Calender() {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const generateCalendar = () => {
