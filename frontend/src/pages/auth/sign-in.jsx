@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
@@ -9,11 +10,11 @@ const quotes = [
   "Great things in business are never done by one person."
 ];
 
-export default function App() {
-  const [userType, setUserType] = useState("admin");
+export default function App()
+ {
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [adminCode, setAdminCode] = useState("");
   const [errors, setErrors] = useState({});
   const [quoteIndex, setQuoteIndex] = useState(0);
   const navigate = useNavigate();
@@ -31,19 +32,18 @@ export default function App() {
     if (!email.trim()) errs.email = "Email is required";
     if (!/\S+@\S+\.\S+/.test(email)) errs.email = "Invalid email format";
     if (!password.trim()) errs.password = "Password is required";
-    if (userType === "admin" && adminCode !== "SECRET123") errs.adminCode = "Invalid admin code";
-
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-    } else {
-      setErrors({});
-      if (userType === "employee") {
+    axios.post("http://localhost:5000/api/auth/login",{ email, password })
+    .then (( response  ) =>{
+  console.log(response )
         navigate("/user/dashboard");
-      } else {
-        // Add admin redirect logic here if needed
-        alert(`Logged in as ${userType.toUpperCase()}`);
-      }
-    }
+      
+
+    })
+    .catch((error) => {
+      setErrors({ api: error.response.data.message });
+    });
+
+
   };
 
   return (
@@ -72,31 +72,6 @@ export default function App() {
         {/* Right Side */}
         <div className="md:w-1/2 p-8 text-white">
           <h1 className="text-3xl font-bold mb-6 text-center">Sign In</h1>
-
-          {/* Toggle Admin/Employee */}
-          <div className="flex mb-6 justify-center space-x-4">
-            <button
-              onClick={() => setUserType("admin")}
-              className={`px-6 py-2 rounded-t-lg font-semibold ${
-                userType === "admin"
-                  ? "bg-blue-600 text-white"
-                  : "bg-[#0d1117] text-gray-400 hover:text-white"
-              }`}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => setUserType("employee")}
-              className={`px-6 py-2 rounded-t-lg font-semibold ${
-                userType === "employee"
-                  ? "bg-blue-600 text-white"
-                  : "bg-[#0d1117] text-gray-400 hover:text-white"
-              }`}
-            >
-              Employee
-            </button>
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate>
             {/* Email */}
@@ -129,31 +104,12 @@ export default function App() {
               {errors.password && <p className="text-red-500 mt-1 text-sm">{errors.password}</p>}
             </div>
 
-            {/* Admin Code */}
-            {userType === "admin" && (
-              <div className="mb-4">
-                <label className="block mb-1 font-semibold">Admin Code</label>
-                <input
-                  type="password"
-                  value={adminCode}
-                  onChange={(e) => setAdminCode(e.target.value)}
-                  className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
-                    errors.adminCode ? "border-red-500" : "border-gray-700"
-                  } focus:outline-none focus:border-blue-500`}
-                  placeholder="Enter secret admin code"
-                />
-                {errors.adminCode && (
-                  <p className="text-red-500 mt-1 text-sm">{errors.adminCode}</p>
-                )}
-              </div>
-            )}
-
             {/* Submit */}
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition"
             >
-              Sign In as {userType === "admin" ? "Admin" : "Employee"}
+              Sign In as
             </button>
           </form>
         </div>
