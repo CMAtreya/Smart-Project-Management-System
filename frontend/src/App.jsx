@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 // Auth Pages
 import Mainpage from './pages/auth/mainpage';
-import Signup from './pages/auth/sign-up';
-import Signin from './pages/auth/sign-in';
+import SignUp from './pages/auth/sign-up';
+import SignIn from './pages/auth/sign-in';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/mainDashboard';
@@ -25,8 +25,8 @@ export default function App() {
     <Routes>
       {/* Auth Routes */}
       <Route path="/" element={<Mainpage />} />
-      <Route path="/signin" element={<Signin />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route path="/signin" element={<SignIn/>} />
+      <Route path="/signup" element={<SignUp />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminDashboard />} />

@@ -10,9 +10,7 @@ const quotes = [
   "Great things in business are never done by one person."
 ];
 
-export default function App()
- {
-  
+export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -34,17 +32,17 @@ export default function App()
     if (!password.trim()) errs.password = "Password is required";
     axios.post("http://localhost:5000/api/auth/login",{ email, password })
     .then (( response  ) =>{
-  console.log(response )
-        navigate("/user/dashboard");
-      
+  console.log(response)
+  if(response.status === 200 || response.status === 201) {
+      localStorage.setItem("token", response.data.token);
+      navigate("/user/dashboard");
+    }
+  })
+  .catch((error) => {
+    setErrors({ api: error.response.data.message });
+  });
+};
 
-    })
-    .catch((error) => {
-      setErrors({ api: error.response.data.message });
-    });
-
-
-  };
 
   return (
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6">
@@ -111,7 +109,11 @@ export default function App()
             >
               Sign In as
             </button>
-          </form>
+          </form><br/>
+          donot have an account?{" "}
+          <a href="/signup" className="text-blue-400 hover:underline">
+            Sign Up
+          </a>
         </div>
       </div>
     </div>
