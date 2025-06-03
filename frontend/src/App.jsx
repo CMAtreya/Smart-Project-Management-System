@@ -6,11 +6,6 @@ import Mainpage from './pages/auth/mainpage';
 import SignUp from './pages/auth/sign-up';
 import SignIn from './pages/auth/sign-in';
 
-// Admin Pages
-import AdminDashboard from './pages/admin/mainDashboard';
-import AdminChartPage from './pages/admin/charts';
-import AdminCalender from './pages/admin/calender';
-import AdminChat from './pages/admin/chatpage';
 
 // User Pages
 import UserChartPage from './pages/user/charts';
@@ -28,11 +23,6 @@ export default function App() {
       <Route path="/signin" element={<SignIn/>} />
       <Route path="/signup" element={<SignUp />} />
       
-      {/* Admin Routes */}
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/chart" element={<AdminChartPage />} />
-      <Route path="/admin/calender" element={<AdminCalender />} />
-      <Route path="/admin/chat" element={<AdminChat />} />
       
       {/* User Routes */}
       <Route path="/user" element={<UserChartPage />} />

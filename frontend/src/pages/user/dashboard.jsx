@@ -37,7 +37,7 @@ export default function Dashboard() {
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">User DASHBOARD</h1>
+          <h1 className="text-3xl font-bold"> DASHBOARD</h1>
           <div className="mt-2 h-2 w-full bg-slate-700 rounded-full">
             <div className="h-full w-[80%] bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
           </div>
