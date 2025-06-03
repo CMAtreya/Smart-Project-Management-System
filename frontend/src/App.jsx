@@ -25,7 +25,7 @@ export default function App() {
       
       
       {/* User Routes */}
-      <Route path="/user" element={<UserChartPage />} />
+      <Route path="/user/charts" element={<UserChartPage />} />
       <Route path="/user/chat" element={<UserChatPage />} />
       <Route path="/user/dashboard" element={<UserDashboard />} />
       <Route path="/user/assignwork" element={<AssignWork />} />

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const { authenticateUser, authorizeRoles } = require('../middleware/auth');
+
 
 // Apply authentication middleware to all routes
 router.use(authenticateUser);
@@ -49,7 +49,7 @@ router.post('/', async (req, res) => {
     req.body.createdBy = req.user.userId;
     
     const project = await Project.create(req.body);
-    
+    console.log('Project created:', project);
     res.status(201).json({ project });
   } catch (error) {
     console.error('Create project error:', error);
@@ -94,7 +94,7 @@ router.patch('/:id', async (req, res) => {
 
 // Delete project
 // DELETE /api/projects/:id
-router.delete('/:id', authorizeRoles('admin'), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     

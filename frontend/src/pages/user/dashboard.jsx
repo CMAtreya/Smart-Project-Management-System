@@ -27,19 +27,19 @@ const Navbar = () => {
         </Link>
         
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/dashboard" className="text-white hover:text-blue-400 flex items-center">
+          <Link to="/user/dashboard" className="text-white hover:text-blue-400 flex items-center">
             <span>Dashboard</span>
           </Link>
-          <Link to="/charts" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/charts" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Analytics</span>
           </Link>
-          <Link to="/calendar" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/calendar" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Calendar</span>
           </Link>
-          <Link to="/chatpage" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/chatpage" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Team Chat</span>
           </Link>
-          <Link to="/finished" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/finished" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Completed</span>
           </Link>
         </div>
@@ -468,76 +468,28 @@ const ProjectDetails = ({ project, onClose }) => {
 };
 
 // Projects Component
+
 const Projects = () => {
   const [activeProject, setActiveProject] = useState(null);
-  
-  const projects = [
-    {
-      id: 1,
-      name: "Website Redesign",
-      client: "TechCorp Inc.",
-      priority: "High",
-      deadline: "Oct 25",
-      progress: 65,
-      team: ["Sarah", "Mike", "Alex"],
-      description: "Complete overhaul of the company website with new branding and improved user experience.",
-      tasks: [
-        { name: "Wireframing", status: "Completed" },
-        { name: "UI Design", status: "In Progress" },
-        { name: "Frontend Development", status: "Pending" },
-        { name: "Backend Integration", status: "Pending" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Mobile App Development",
-      client: "Innovate Solutions",
-      priority: "Medium",
-      deadline: "Nov 10",
-      progress: 30,
-      team: ["John", "Lisa", "David"],
-      description: "Develop a cross-platform mobile application for inventory management with offline capabilities.",
-      tasks: [
-        { name: "Requirements Gathering", status: "Completed" },
-        { name: "UI/UX Design", status: "Completed" },
-        { name: "Frontend Development", status: "In Progress" },
-        { name: "Backend Development", status: "Pending" }
-      ]
-    },
-    {
-      id: 3,
-      name: "Marketing Campaign",
-      client: "GrowFast Agency",
-      priority: "Low",
-      deadline: "Oct 30",
-      progress: 85,
-      team: ["Emma", "Ryan"],
-      description: "Create and execute a digital marketing campaign across multiple platforms to increase brand awareness.",
-      tasks: [
-        { name: "Strategy Planning", status: "Completed" },
-        { name: "Content Creation", status: "Completed" },
-        { name: "Campaign Setup", status: "Completed" },
-        { name: "Performance Monitoring", status: "In Progress" }
-      ]
-    },
-    {
-      id: 4,
-      name: "Database Migration",
-      client: "SecureData Systems",
-      priority: "High",
-      deadline: "Nov 5",
-      progress: 40,
-      team: ["Tom", "Anna", "Chris", "Maria"],
-      description: "Migrate existing database to a new cloud infrastructure with zero downtime and improved security.",
-      tasks: [
-        { name: "Planning", status: "Completed" },
-        { name: "Data Mapping", status: "In Progress" },
-        { name: "Migration Script", status: "In Progress" },
-        { name: "Testing", status: "Pending" }
-      ]
-    }
-  ];
-  
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/projects', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': localStorage.getItem('token'),
+        'Custom-Header': 'SomeValue'
+      }
+    })
+    .then((response) => {
+      const projects = response.data.projects;
+      setProjects(projects);
+    })
+    .catch((error) => {
+      console.error('Error fetching projects:', error);
+    });
+  }, []);
+ 
   return (
     <div className="bg-gray-800 rounded-xl p-5 shadow-lg">
       <div className="flex justify-between items-center mb-6">
