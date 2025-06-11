@@ -21,25 +21,28 @@ const Navbar = () => {
   return (
     <nav className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm bg-opacity-80">
       <div className="flex items-center space-x-8">
-        <Link to="/dashboard" className="text-2xl font-bold text-white flex items-center">
+        <Link to="/user/dashboard" className="text-2xl font-bold text-white flex items-center">
           <FaTasks className="text-blue-500 mr-2" />
           <span>SmartTask</span>
         </Link>
         
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/dashboard" className="text-white hover:text-blue-400 flex items-center">
+          <Link to="/user/dashboard" className="text-white hover:text-blue-400 flex items-center">
             <span>Dashboard</span>
           </Link>
-          <Link to="/charts" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Analytics</span>
           </Link>
-          <Link to="/calendar" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/calendar" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Calendar</span>
           </Link>
-          <Link to="/chatpage" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/chat" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Team Chat</span>
           </Link>
-          <Link to="/finished" className="text-gray-400 hover:text-blue-400 flex items-center">
+          <Link to="/user/tasks" className="text-gray-400 hover:text-blue-400 flex items-center">
+            <span>Tasks</span>
+          </Link>
+          <Link to="/user/finishedproject" className="text-gray-400 hover:text-blue-400 flex items-center">
             <span>Completed</span>
           </Link>
         </div>
@@ -800,9 +803,14 @@ const Projects = () => {
               <div className="flex justify-between items-center mb-2">
                 <h4 className="text-sm font-medium text-white">Tasks</h4>
                 {activeProject.type === 'personal' && (
-                  <button className="text-xs text-blue-400 hover:text-blue-300">
+                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
                     + Add Task
-                  </button>
+                  </Link>
+                )}
+                {activeProject.type === 'assigned' && (
+                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
+                    View Tasks
+                  </Link>
                 )}
               </div>
               <div className="space-y-2">

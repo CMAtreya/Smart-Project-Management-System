@@ -14,6 +14,7 @@ import UserDashboard from './pages/user/dashboard';
 import AssignWork from './pages/user/assignwork';
 import FinishedProject from './pages/user/finishedproject';
 import Calendar from './pages/user/clander';
+import TasksPage from './pages/user/tasks';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/user/assignwork" element={<AssignWork />} />
       <Route path="/user/finishedproject" element={<FinishedProject />} />
       <Route path="/user/calendar" element={<Calendar />} />
+      <Route path="/user/tasks" element={<TasksPage />} />
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

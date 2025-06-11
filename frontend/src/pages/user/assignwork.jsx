@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function App() {
   const tasks = [
@@ -73,28 +74,34 @@ export default function App() {
         </div>
         <nav className="flex flex-col space-y-2">
           {[
-            "Home",
-            "Chart",
-            "Finished Project",
-            "Calendar",
-            "Assigned Work",
-            "Team Chats",
+            { name: "Home", path: "/user/dashboard" },
+            { name: "Chart", path: "/user/chart" },
+            { name: "Finished Project", path: "/user/finishedproject" },
+            { name: "Calendar", path: "/user/calendar" },
+            { name: "Assigned Work", path: "/user/assignwork" },
+            { name: "Tasks", path: "/user/tasks" },
+            { name: "Team Chats", path: "/user/chat" },
           ].map((item) => (
-            <button
-              key={item}
-              className={`text-left py-2 px-4 rounded hover:bg-blue-700 ${
-                item === "Assigned Work" ? "bg-blue-600" : "hover:bg-[#1f2937]"
-              }`}
-            >
-              {item}
-            </button>
+            <Link to={item.path} key={item.name}>
+              <button
+                className={`text-left py-2 px-4 rounded hover:bg-blue-700 w-full ${item.name === "Assigned Work" ? "bg-blue-600" : "hover:bg-[#1f2937]"}`}
+              >
+                {item.name}
+              </button>
+            </Link>
           ))}
         </nav>
       </div>
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        <h1 className="text-3xl font-bold mb-6">Assigned Work</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Assigned Work</h1>
+          <div className="text-sm text-slate-400">
+            <p>These tasks are assigned by your admin or project manager.</p>
+            <p>You cannot add new work tasks yourself.</p>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="flex gap-4 mb-6">
