@@ -468,49 +468,239 @@ const ProjectDetails = ({ project, onClose }) => {
 };
 
 // Projects Component
+// ... existing code ...
 
+// Projects Component with enhanced management capabilities
+// Projects Component with enhanced management capabilities
 const Projects = () => {
   const [activeProject, setActiveProject] = useState(null);
-  const [projects, setProjects] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [projectFormData, setProjectFormData] = useState({
+    name: '',
+    client: '',
+    priority: 'Medium',
+    deadline: '',
+    description: '',
+    team: [],
+    tasks: [],
+    type: 'personal' // Default to personal project
+  });
+  
+  // Sample projects data with type field to distinguish personal vs assigned
+  const [projects, setProjects] = useState([
+    {
+      id: 1,
+      name: "Website Redesign",
+      client: "TechCorp Inc.",
+      priority: "High",
+      deadline: "Oct 25",
+      progress: 65,
+      team: ["Sarah", "Mike", "Alex"],
+      description: "Complete overhaul of the company website with new branding and improved user experience.",
+      type: "personal", // Personal project - can be edited
+      tasks: [
+        { name: "Wireframing", status: "Completed" },
+        { name: "UI Design", status: "In Progress" },
+        { name: "Frontend Development", status: "Pending" },
+        { name: "Backend Integration", status: "Pending" }
+      ]
+    },
+    {
+      id: 2,
+      name: "Mobile App Development",
+      client: "Innovate Solutions",
+      priority: "Medium",
+      deadline: "Nov 10",
+      progress: 30,
+      team: ["John", "Lisa", "David"],
+      description: "Develop a cross-platform mobile application for inventory management with offline capabilities.",
+      type: "assigned", // Assigned project - cannot be edited
+      tasks: [
+        { name: "Requirements Gathering", status: "Completed" },
+        { name: "UI/UX Design", status: "Completed" },
+        { name: "Frontend Development", status: "In Progress" },
+        { name: "Backend Development", status: "Pending" }
+      ]
+    },
+    {
+      id: 3,
+      name: "Marketing Campaign",
+      client: "GrowFast Agency",
+      priority: "Low",
+      deadline: "Oct 30",
+      progress: 85,
+      team: ["Emma", "Ryan"],
+      description: "Create and execute a digital marketing campaign across multiple platforms to increase brand awareness.",
+      type: "personal", // Personal project - can be edited
+      tasks: [
+        { name: "Strategy Planning", status: "Completed" },
+        { name: "Content Creation", status: "Completed" },
+        { name: "Campaign Setup", status: "Completed" },
+        { name: "Performance Monitoring", status: "In Progress" }
+      ]
+    },
+    {
+      id: 4,
+      name: "Database Migration",
+      client: "SecureData Systems",
+      priority: "High",
+      deadline: "Nov 5",
+      progress: 40,
+      team: ["Tom", "Anna", "Chris", "Maria"],
+      description: "Migrate existing database to a new cloud infrastructure with zero downtime and improved security.",
+      type: "assigned", // Assigned project - cannot be edited
+      tasks: [
+        { name: "Planning", status: "Completed" },
+        { name: "Data Mapping", status: "In Progress" },
+        { name: "Migration Script", status: "In Progress" },
+        { name: "Testing", status: "Pending" }
+      ]
+    }
+  ]);
+  
+  // Filter projects by type
+  const [activeFilter, setActiveFilter] = useState('all');
+  const filteredProjects = projects.filter(project => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'personal') return project.type === 'personal';
+    if (activeFilter === 'assigned') return project.type === 'assigned';
+    if (activeFilter === 'completed') return project.progress === 100;
+    return true;
+  });
 
-  useEffect(() => {
-    axios.get('http://localhost:5000/api/projects', {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('token'),
-        'Custom-Header': 'SomeValue'
-      }
-    })
-    .then((response) => {
-      const projects = response.data.projects;
-      setProjects(projects);
-    })
-    .catch((error) => {
-      console.error('Error fetching projects:', error);
+  // Handle adding a new project
+  const handleAddProject = () => {
+    const newProject = {
+      ...projectFormData,
+      id: projects.length + 1,
+      progress: 0,
+      tasks: projectFormData.tasks.length > 0 ? projectFormData.tasks : [
+        { name: "Planning", status: "Pending" }
+      ],
+      team: projectFormData.team.length > 0 ? projectFormData.team : ["Admin"]
+    };
+    
+    setProjects([...projects, newProject]);
+    setShowAddModal(false);
+    setProjectFormData({
+      name: '',
+      client: '',
+      priority: 'Medium',
+      deadline: '',
+      description: '',
+      team: [],
+      tasks: [],
+      type: 'personal'
     });
-  }, []);
- 
+  };
+
+  // Handle editing an existing project
+  const handleEditProject = () => {
+    if (!activeProject || activeProject.type === 'assigned') return;
+    
+    const updatedProjects = projects.map(project => 
+      project.id === activeProject.id ? 
+        {...project, ...projectFormData, team: projectFormData.team.length > 0 ? projectFormData.team : project.team} : 
+        project
+    );
+    
+    setProjects(updatedProjects);
+    setEditMode(false);
+    setActiveProject(null);
+    setProjectFormData({
+      name: '',
+      client: '',
+      priority: 'Medium',
+      deadline: '',
+      description: '',
+      team: [],
+      tasks: [],
+      type: 'personal'
+    });
+  };
+
+  // Handle deleting a project
+  const handleDeleteProject = (projectId) => {
+    const projectToDelete = projects.find(p => p.id === projectId);
+    if (projectToDelete.type === 'assigned') {
+      // Cannot delete assigned projects
+      return;
+    }
+    
+    const updatedProjects = projects.filter(project => project.id !== projectId);
+    setProjects(updatedProjects);
+    if (activeProject && activeProject.id === projectId) {
+      setActiveProject(null);
+    }
+  };
+
+  // Start editing a project
+  const startEditProject = (project) => {
+    if (project.type === 'assigned') return; // Cannot edit assigned projects
+    
+    setProjectFormData({
+      name: project.name,
+      client: project.client,
+      priority: project.priority,
+      deadline: project.deadline,
+      description: project.description,
+      team: project.team,
+      tasks: project.tasks,
+      type: project.type
+    });
+    
+    setEditMode(true);
+  };
+  
   return (
     <div className="bg-gray-800 rounded-xl p-5 shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold text-white flex items-center">
-          <FaProjectDiagram className="text-blue-500 mr-2" /> Projects Assigned
+          <FaProjectDiagram className="text-blue-500 mr-2" /> Projects Management
         </h3>
         <div className="flex space-x-2">
-          <button className="text-gray-400 hover:text-white text-sm bg-gray-700 px-3 py-1 rounded-lg">
+          <button 
+            className={`text-sm px-3 py-1 rounded-lg ${activeFilter === 'all' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white bg-gray-700'}`}
+            onClick={() => setActiveFilter('all')}
+          >
             All
           </button>
-          <button className="text-gray-400 hover:text-white text-sm">
-            Active
+          <button 
+            className={`text-sm px-3 py-1 rounded-lg ${activeFilter === 'personal' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white bg-gray-700'}`}
+            onClick={() => setActiveFilter('personal')}
+          >
+            Personal
           </button>
-          <button className="text-gray-400 hover:text-white text-sm">
+          <button 
+            className={`text-sm px-3 py-1 rounded-lg ${activeFilter === 'assigned' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white bg-gray-700'}`}
+            onClick={() => setActiveFilter('assigned')}
+          >
+            Assigned
+          </button>
+          <button 
+            className={`text-sm px-3 py-1 rounded-lg ${activeFilter === 'completed' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white bg-gray-700'}`}
+            onClick={() => setActiveFilter('completed')}
+          >
             Completed
           </button>
         </div>
       </div>
       
+      <div className="flex justify-end mb-4">
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center text-sm"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Personal Project
+        </button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <ProjectCard 
             key={project.id}
             project={project}
@@ -522,16 +712,254 @@ const Projects = () => {
       
       <AnimatePresence>
         {activeProject && (
-          <ProjectDetails 
-            project={activeProject} 
-            onClose={() => setActiveProject(null)} 
-          />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{activeProject.name}</h3>
+                <p className="text-sm text-gray-400">{activeProject.client}</p>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${activeProject.type === 'personal' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'} mt-2 inline-block`}>
+                  {activeProject.type === 'personal' ? 'Personal Project' : 'Assigned Project'}
+                </span>
+              </div>
+              <div className="flex space-x-2">
+                {activeProject.type === 'personal' && (
+                  <>
+                    <button 
+                      onClick={() => startEditProject(activeProject)}
+                      className="text-gray-400 hover:text-white bg-gray-700 p-2 rounded-lg"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProject(activeProject.id)}
+                      className="text-red-400 hover:text-red-300 bg-red-500/10 p-2 rounded-lg"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+                <button 
+                  onClick={() => setActiveProject(null)}
+                  className="text-gray-400 hover:text-white bg-gray-700 p-2 rounded-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="bg-gray-700/50 p-3 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Priority</p>
+                <p className={`
+                  text-sm font-medium
+                  ${activeProject.priority === 'High' ? 'text-red-400' : 
+                    activeProject.priority === 'Medium' ? 'text-yellow-400' : 
+                    'text-green-400'}
+                `}>{activeProject.priority}</p>
+              </div>
+              
+              <div className="bg-gray-700/50 p-3 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Deadline</p>
+                <p className="text-sm font-medium text-white">{activeProject.deadline}</p>
+              </div>
+              
+              <div className="bg-gray-700/50 p-3 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1">Progress</p>
+                <p className="text-sm font-medium text-white">{activeProject.progress}%</p>
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-white mb-2">Description</h4>
+              <p className="text-sm text-gray-400">{activeProject.description}</p>
+            </div>
+            
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-white mb-2">Team Members</h4>
+              <div className="flex flex-wrap gap-2">
+                {activeProject.team.map((member, idx) => (
+                  <div key={idx} className="bg-gray-700 px-3 py-1 rounded-full text-xs text-white">
+                    {member}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-sm font-medium text-white">Tasks</h4>
+                {activeProject.type === 'personal' && (
+                  <button className="text-xs text-blue-400 hover:text-blue-300">
+                    + Add Task
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {activeProject.tasks.map((task, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-gray-700/50 p-2 rounded-lg">
+                    <div className="flex items-center">
+                      <div className={`
+                        h-4 w-4 rounded-full mr-2
+                        ${task.status === 'Completed' ? 'bg-green-500' : 
+                          task.status === 'In Progress' ? 'bg-blue-500' : 
+                          'bg-yellow-500'}
+                      `}></div>
+                      <span className="text-sm text-white">{task.name}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-xs text-gray-400 mr-2">{task.status}</span>
+                      {activeProject.type === 'personal' && (
+                        <div className="flex space-x-1">
+                          <button className="text-gray-400 hover:text-white">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                          <button className="text-red-400 hover:text-red-300">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Add/Edit Project Modal */}
+      {(showAddModal || editMode) && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-white">
+                {editMode ? 'Edit Project' : 'Add New Project'}
+              </h3>
+              <button 
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditMode(false);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Project Name</label>
+                <input 
+                  type="text" 
+                  value={projectFormData.name}
+                  onChange={(e) => setProjectFormData({...projectFormData, name: e.target.value})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter project name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Client</label>
+                <input 
+                  type="text" 
+                  value={projectFormData.client}
+                  onChange={(e) => setProjectFormData({...projectFormData, client: e.target.value})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter client name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Priority</label>
+                <select 
+                  value={projectFormData.priority}
+                  onChange={(e) => setProjectFormData({...projectFormData, priority: e.target.value})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Deadline</label>
+                <input 
+                  type="text" 
+                  value={projectFormData.deadline}
+                  onChange={(e) => setProjectFormData({...projectFormData, deadline: e.target.value})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. Oct 30"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                <textarea 
+                  value={projectFormData.description}
+                  onChange={(e) => setProjectFormData({...projectFormData, description: e.target.value})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                  placeholder="Enter project description"
+                ></textarea>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Team Members (comma separated)</label>
+                <input 
+                  type="text" 
+                  value={projectFormData.team.join(', ')}
+                  onChange={(e) => setProjectFormData({...projectFormData, team: e.target.value.split(',').map(item => item.trim()).filter(item => item !== '')})}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. John, Sarah, Mike"
+                />
+              </div>
+              
+              <div className="pt-4 flex justify-end space-x-3">
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditMode(false);
+                  }}
+                  className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={editMode ? handleEditProject : handleAddProject}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={!projectFormData.name}
+                >
+                  {editMode ? 'Save Changes' : 'Add Project'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
-
 // Main Dashboard Component
 function Dashboard() {
   const [loading, setLoading] = useState(true);

@@ -11,7 +11,7 @@ const JWT_LIFETIME = process.env.JWT_LIFETIME || '30d';
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
+ console.log(name,email,password );
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
