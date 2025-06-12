@@ -14,27 +14,29 @@ import UserDashboard from './pages/user/dashboard';
 import AssignWork from './pages/user/assignwork';
 import FinishedProject from './pages/user/finishedproject';
 import Calendar from './pages/user/clander';
-import TasksPage from './pages/user/tasks';
+import TasksPage from './pages/user/TasksPage';
 
 export default function App() {
   return (
-    <Routes>
-      {/* Auth Routes */}
-      <Route path="/" element={<Mainpage />} />
-      <Route path="/signin" element={<SignIn/>} />
-      <Route path="/signup" element={<SignUp />} />
-      
-      
-      {/* User Routes */}
-      <Route path="/user" element={<UserChartPage />} />
-      <Route path="/user/chat" element={<UserChatPage />} />
-      <Route path="/user/dashboard" element={<UserDashboard />} />
-      <Route path="/user/assignwork" element={<AssignWork />} />
-      <Route path="/user/finishedproject" element={<FinishedProject />} />
-      <Route path="/user/calendar" element={<Calendar />} />
-      <Route path="/user/tasks" element={<TasksPage />} />
-      {/* Catch all route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <div className="app-container">
+      <Routes>
+        {/* Auth Routes */}
+        <Route path="/" element={<Mainpage />} />
+        <Route path="/signin" element={<SignIn/>} />
+        <Route path="/signup" element={<SignUp />} />
+        
+        
+        {/* User Routes */}
+        <Route path="/user/charts" element={<UserChartPage />} />
+        <Route path="/user/chat" element={<UserChatPage />} />
+        <Route path="/user/dashboard" element={<UserDashboard />} />
+        <Route path="/user/assignwork" element={<AssignWork />} />
+        <Route path="/user/finishedproject" element={<FinishedProject />} />
+        <Route path="/user/calendar" element={<Calendar />} />
+        <Route path="/user/TasksPage" element={<TasksPage />} />
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   );
 }

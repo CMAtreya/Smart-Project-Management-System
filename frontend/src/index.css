@@ -1,26 +1,133 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    scroll-behavior: smooth;
+    @apply antialiased text-gray-800 bg-gray-50;
+  }
 
-/* Custom font settings or other styles below */
-html {
-  font-family: 'Poppins', sans-serif;
-  background-color: #f0f0f0;
-  color: #333;
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+
+  /* Dark mode styles */
+  .dark {
+    @apply bg-gray-900 text-white;
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-white;
+  }
+  
+  /* Smooth transitions for theme changes */
+  body, html, .dark, .light {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Apple-inspired styles using system fonts */
+  .apple-font {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
 }
 
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 
-body {
-  margin: 0;
-  padding: 0;
-  background-color: white;
-  color: #1a202c;
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md text-sm font-medium shadow-sm transition-all duration-200 ease-in-out;
+  }
+
+  .btn-primary {
+    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-gray-800 border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  }
+
+  .card {
+    @apply bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden p-6;
+  }
+
+  .input {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500;
+  }
+
+  .nav-link {
+    @apply text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-blue-600 font-semibold;
+  }
+
+  .nav-link-active::after {
+    content: '';
+    @apply block w-full h-0.5 bg-blue-600 rounded-full mt-1;
+  }
 }
 
-.dark body {
-  background-color: #121212;
-  color: #f1f1f1;
+@layer utilities {
+  .custom-scrollbar {
+    @apply scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent;
+  }
+
+  .custom-scrollbar:hover {
+    @apply scrollbar-thumb-gray-400;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Custom scrollbar styles for WebKit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
 }
