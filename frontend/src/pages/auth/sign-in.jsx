@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
@@ -13,9 +11,11 @@ const quotes = [
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminSecretKey, setAdminSecretKey] = useState("");
   const [errors, setErrors] = useState({});
   const [quoteIndex, setQuoteIndex] = useState(0);
-  const navigate = useNavigate();
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,25 +24,47 @@ export default function SignIn() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleFlip = () => {
+    setIsFlipping(true);
+    setTimeout(() => {
+      setIsAdminMode(!isAdminMode);
+      setEmail("");
+      setPassword("");
+      setAdminSecretKey("");
+      setErrors({});
+      setIsFlipping(false);
+    }, 300);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = {};
+    
     if (!email.trim()) errs.email = "Email is required";
     if (!/\S+@\S+\.\S+/.test(email)) errs.email = "Invalid email format";
     if (!password.trim()) errs.password = "Password is required";
-    axios.post("http://localhost:5000/api/auth/login",{ email, password })
-    .then (( response  ) =>{
-  console.log(response)
-  if(response.status === 200 || response.status === 201) {
-      localStorage.setItem("token", response.data.token);
-      navigate("/user/dashboard");
+    
+    if (isAdminMode && !adminSecretKey.trim()) {
+      errs.adminSecretKey = "Admin secret key is required";
     }
-  })
-  .catch((error) => {
-    setErrors({ api: error.response.data.message });
-  });
-};
 
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+
+    // Simulate API call
+    const loginData = isAdminMode 
+      ? { email, password, adminSecretKey }
+      : { email, password };
+
+    console.log(`${isAdminMode ? 'Admin' : 'User'} login attempt:`, loginData);
+    
+    // Simulate successful login
+    setTimeout(() => {
+      setErrors({ api: `${isAdminMode ? 'Admin' : 'User'} login successful! Redirecting...` });
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6">
@@ -67,55 +89,120 @@ export default function SignIn() {
           </p>
         </div>
 
-        {/* Right Side */}
+        {/* Right Side with Flip Animation */}
         <div className="md:w-1/2 p-8 text-white">
-          <h1 className="text-3xl font-bold mb-6 text-center">Sign In</h1>
-          {/* Form */}
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Email */}
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
-                  errors.email ? "border-red-500" : "border-gray-700"
-                } focus:outline-none focus:border-blue-500`}
-                placeholder="email@example.com"
-              />
-              {errors.email && <p className="text-red-500 mt-1 text-sm">{errors.email}</p>}
+          <div className={`transition-opacity duration-300 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}>
+            {/* Mode Toggle */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-[#0d1117] rounded p-1 flex border border-gray-700">
+                <button
+                  type="button"
+                  onClick={handleFlip}
+                  className={`px-4 py-2 rounded font-semibold transition ${
+                    !isAdminMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  User Login
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFlip}
+                  className={`px-4 py-2 rounded font-semibold transition ${
+                    isAdminMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Admin Login
+                </button>
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
-                  errors.password ? "border-red-500" : "border-gray-700"
-                } focus:outline-none focus:border-blue-500`}
-                placeholder="********"
-              />
-              {errors.password && <p className="text-red-500 mt-1 text-sm">{errors.password}</p>}
+            <h1 className="text-3xl font-bold mb-6 text-center">
+              {isAdminMode ? 'Admin Sign In' : 'Sign In'}
+            </h1>
+
+            {errors.api && (
+              <div className={`mb-4 p-3 border rounded text-sm ${
+                errors.api.includes('successful') 
+                  ? 'bg-green-900/50 border-green-500 text-green-200'
+                  : 'bg-red-900/50 border-red-500 text-red-200'
+              }`}>
+                {errors.api}
+              </div>
+            )}
+
+            {/* Login Form */}
+            <div>
+              {/* Email */}
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
+                    errors.email ? "border-red-500" : "border-gray-700"
+                  } focus:outline-none focus:border-blue-500`}
+                  placeholder="email@example.com"
+                />
+                {errors.email && <p className="text-red-500 mt-1 text-sm">{errors.email}</p>}
+              </div>
+
+              {/* Password */}
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
+                    errors.password ? "border-red-500" : "border-gray-700"
+                  } focus:outline-none focus:border-blue-500`}
+                  placeholder="********"
+                />
+                {errors.password && <p className="text-red-500 mt-1 text-sm">{errors.password}</p>}
+              </div>
+
+              {/* Admin Secret Key - Only shown in admin mode */}
+              {isAdminMode && (
+                <div className="mb-4">
+                  <label className="block mb-1 font-semibold">Admin Secret Key</label>
+                  <input
+                    type="password"
+                    value={adminSecretKey}
+                    onChange={(e) => setAdminSecretKey(e.target.value)}
+                    className={`w-full rounded px-4 py-2 bg-[#0d1117] border ${
+                      errors.adminSecretKey ? "border-red-500" : "border-gray-700"
+                    } focus:outline-none focus:border-blue-500`}
+                    placeholder="Enter admin secret key"
+                  />
+                  {errors.adminSecretKey && (
+                    <p className="text-red-500 mt-1 text-sm">{errors.adminSecretKey}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition"
+              >
+                Sign In as {isAdminMode ? 'Admin' : 'User'}
+              </button>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition"
-            >
-              Sign In as
+            </div><br/>
+            Don't have an account?{" "}
+            <button className="text-blue-400 hover:underline bg-transparent border-none cursor-pointer">
+              Sign Up
             </button>
-          </form><br/>
-          donot have an account?{" "}
-          <a href="/signup" className="text-blue-400 hover:underline">
-            Sign Up
-          </a>
+          </div>
         </div>
       </div>
-    </div>
+  
   );
 }
