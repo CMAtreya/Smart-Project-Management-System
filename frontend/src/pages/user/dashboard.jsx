@@ -6,7 +6,7 @@ import {
   FaBell, FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
   FaRegClock, FaExclamationCircle, FaHeartbeat, FaProjectDiagram,
   FaClipboardCheck, FaChevronRight, FaClipboardList, FaLightbulb,
-  FaUserCog, FaUserTie, FaUsers, FaFilter, FaPlus, FaArrowRight
+  FaUserCog, FaUserTie, FaUsers, FaFilter, FaPlus, FaArrowRight, FaEye
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -17,7 +17,8 @@ import Navbar from '../../components/Navbar';
 // This ensures we use system fonts instead of SF Pro fonts
 
 // Add a styled background pattern using CSS
-const backgroundStyles = `
+// Common utility classes and styles
+const backgroundCSS = `
   .bg-grid-pattern {
     background-image: 
       linear-gradient(to right, rgba(100, 116, 139, 0.1) 1px, transparent 1px),
@@ -47,44 +48,26 @@ const backgroundStyles = `
   .dashboard-card:hover::before {
     opacity: 1;
   }
-  
-  .gradient-border {
-    position: relative;
-  }
-  
-  .gradient-border::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(to right, #3b82f6, #9333ea);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-  
-  .gradient-border:hover::after {
-    transform: scaleX(1);
-  }
 `;
 
-// Loader Component
+const styles = {
+  card: "dashboard-card bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl backdrop-blur-sm hover:shadow-blue-900/30",
+  heading: "text-xl font-bold text-gray-800 dark:text-white flex items-center",
+  iconBox: "p-2 rounded-lg mr-3",
+  button: "text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors",
+  badge: "text-xs font-medium py-1 px-3 rounded-full"
+};
+
+// Loader Component - simplified classes
 const Loader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
     <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
   </div>
 );
 
-// We're now using the common Navbar component imported from components/Navbar.jsx
-
-// Stress Monitor Component with Semicircle
+// StressMonitor Component with optimized classes
 const StressMonitor = () => {
-  // Stress level from 0 (low) to 100 (high)
   const stressLevel = 65;
-  
-  // Calculate the rotation for the needle
   const needleRotation = (stressLevel / 100) * 180;
   
   return (
@@ -92,8 +75,8 @@ const StressMonitor = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="dashboard-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl h-full border border-gray-200 dark:border-gray-700 hover:shadow-blue-900/30 transition-all duration-300 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80"
-      whileHover={{ scale: 1.02, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+      className={styles.card}
+      whileHover={{ scale: 1.02 }}
     >
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
@@ -162,13 +145,28 @@ const StressMonitor = () => {
 
 // Today's Tasks Component
 const TodaysTasks = () => {
+  const navigate = useNavigate();
+  
+  const taskStyles = {
+    task: "flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 group",
+    status: {
+      completed: "bg-green-500/20 text-green-400",
+      inProgress: "bg-yellow-500/20 text-yellow-400",
+      todo: "bg-blue-500/20 text-blue-400"
+    }
+  };
+  
+  const handleTaskClick = (taskId) => {
+    navigate('/user/TasksPage', { state: { openTaskDetails: taskId } });
+  };
+  
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      className="dashboard-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl h-full border border-gray-200 dark:border-gray-700 hover:shadow-blue-900/30 transition-all duration-300 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80"
-      whileHover={{ scale: 1.02, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+      className={styles.card}
+      whileHover={{ scale: 1.02 }}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -179,9 +177,9 @@ const TodaysTasks = () => {
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-xs font-medium bg-blue-500/20 text-blue-400 py-1 px-3 rounded-full">4 tasks</span>
-          <button className="text-gray-400 hover:text-white transition-colors duration-200">
+          <Link to="/user/TasksPage" className="text-gray-400 hover:text-white transition-colors duration-200">
             <FaEllipsisH />
-          </button>
+          </Link>
         </div>
       </div>
       
@@ -191,6 +189,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(1)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-yellow-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -211,6 +210,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(2)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-blue-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -231,6 +231,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.4 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(3)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-green-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -251,6 +252,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(4)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-blue-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -268,7 +270,7 @@ const TodaysTasks = () => {
         
         <div className="pt-2 text-center">
           <Link to="/user/TasksPage" className="text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center transition-colors duration-200">
-            View all tasks <FaChevronRight className="ml-1 text-xs" />
+            View all tasks <FaArrowRight className="ml-1 text-xs" />
           </Link>
         </div>
       </div>
@@ -280,6 +282,17 @@ const TodaysTasks = () => {
 
 // Calendar Component
 const CalendarWidget = () => {
+  const calendarStyles = {
+    base: "bg-gray-800 rounded-xl p-5 h-full border border-gray-700 backdrop-blur-sm",
+    dayLabel: "text-center text-xs text-gray-400 font-medium py-1",
+    dateCell: "h-8 flex items-center justify-center text-sm rounded-full cursor-pointer",
+    states: {
+      today: "bg-blue-500 text-white",
+      highlighted: "bg-red-500/70 text-white",
+      normal: "text-gray-300 hover:bg-gray-700"
+    }
+  };
+
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SA', 'SU'];
   const dates = [
     [1, 2, 3, 4, 5, 6, 7],
@@ -289,17 +302,16 @@ const CalendarWidget = () => {
     [29, 30, null, null, null, null, null]
   ];
   
-  // Highlighted dates (meetings, deadlines, etc)
   const highlights = [6, 8, 17, 21];
-  const today = 17; // Current date
+  const today = 17;
   
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="dashboard-card bg-gray-800 rounded-xl p-5 shadow-lg h-full border border-gray-700 backdrop-blur-sm bg-opacity-80"
-      whileHover={{ scale: 1.02, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)' }}
+      className={calendarStyles.base}
+      whileHover={{ scale: 1.02 }}
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-white">Calendar</h3>
@@ -348,7 +360,18 @@ const CalendarWidget = () => {
 };
 
 // Project Card Component
-const ProjectCard = ({ project, isActive, onClick }) => {
+const ProjectCard = ({ project = {}, isActive, onClick }) => {
+  // Ensure project has default values for required properties
+  const {
+    name = '',
+    client = '',
+    priority = 'Medium',
+    deadline = 'Not set',
+    progress = 0,
+    team = [],
+    type = 'personal'
+  } = project;
+
   return (
     <motion.div 
       whileHover={{ y: -5, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.2)' }}
@@ -394,9 +417,8 @@ const ProjectCard = ({ project, isActive, onClick }) => {
         <div className="flex items-center text-gray-400 bg-gray-800/50 px-2 py-1 rounded-full">
           <FaRegClock className="mr-1" />
           <span>{project.deadline}</span>
-        </div>
-        <div className="flex -space-x-2">
-          {project.team.map((member, idx) => (
+        </div>        <div className="flex -space-x-2">
+          {team && team.length > 0 ? team.map((member, idx) => (
             <motion.div 
               key={idx} 
               className="h-6 w-6 rounded-full bg-gray-600 border-2 border-gray-800 flex items-center justify-center text-xs text-white"
@@ -404,9 +426,13 @@ const ProjectCard = ({ project, isActive, onClick }) => {
               whileHover={{ y: -2 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              {member.charAt(0)}
+              {member?.charAt(0) || '?'}
             </motion.div>
-          ))}
+          )) : (
+            <div className="h-6 w-6 rounded-full bg-gray-600 border-2 border-gray-800 flex items-center justify-center text-xs text-white">
+              ?
+            </div>
+          )}
         </div>
       </div>
       
@@ -518,6 +544,20 @@ const ProjectDetails = ({ project, onClose }) => {
 
 // Projects Component with enhanced management capabilities
 const Projects = () => {
+  const projectStyles = {
+    container: "bg-gray-800 rounded-xl p-5 border border-gray-700 backdrop-blur-sm",
+    filterButton: "text-sm px-3 py-1 rounded-lg",
+    buttonStates: {
+      active: "bg-blue-600 text-white",
+      inactive: "text-gray-400 hover:text-white bg-gray-700"
+    },
+    card: {
+      base: "p-4 rounded-xl cursor-pointer transition-all duration-300",
+      active: "bg-blue-600/20 border border-blue-500/50",
+      inactive: "bg-gray-700/40 hover:bg-gray-700/60 border border-transparent"
+    }
+  };
+
   const [activeProject, setActiveProject] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -529,14 +569,23 @@ const Projects = () => {
     description: '',
     team: [],
     tasks: [],
-    type: 'personal' // Default to personal project
+    type: 'personal'
   });
-  
-  // Sample projects data with type field to distinguish personal vs assigned
+    // Sample projects data with type field to distinguish personal vs assigned
   const [projects, setProjects] = useState([
     {
-      
-}]);
+      id: 1,
+      name: 'Sample Project',
+      client: 'Internal',
+      priority: 'Medium',
+      deadline: '2025-06-30',
+      description: 'A sample project to get started',
+      team: ['Admin'],
+      tasks: [{ name: "Getting Started", status: "Pending" }],
+      type: 'personal',
+      progress: 0
+    }
+  ]);
   
   // Filter projects by type
   const [activeFilter, setActiveFilter] = useState('all');
@@ -776,68 +825,14 @@ const Projects = () => {
               </div>
             </div>
             
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-white mb-2">Description</h4>
-              <p className="text-sm text-gray-400">{activeProject.description}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-white mb-2">Team Members</h4>
-              <div className="flex flex-wrap gap-2">
-                {activeProject.team.map((member, idx) => (
-                  <div key={idx} className="bg-gray-700 px-3 py-1 rounded-full text-xs text-white">
-                    {member}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-sm font-medium text-white">Tasks</h4>
-                {activeProject.type === 'personal' && (
-                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
-                    + Add Task
-                  </Link>
-                )}
-                {activeProject.type === 'assigned' && (
-                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
-                    View Tasks
-                  </Link>
-                )}
-              </div>
-              <div className="space-y-2">
-                {activeProject.tasks.map((task, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-gray-700/50 p-2 rounded-lg">
-                    <div className="flex items-center">
-                      <div className={`
-                        h-4 w-4 rounded-full mr-2
-                        ${task.status === 'Completed' ? 'bg-green-500' : 
-                          task.status === 'In Progress' ? 'bg-blue-500' : 
-                          'bg-yellow-500'}
-                      `}></div>
-                      <span className="text-sm text-white">{task.name}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-400 mr-2">{task.status}</span>
-                      {activeProject.type === 'personal' && (
-                        <div className="flex space-x-1">
-                          <button className="text-gray-400 hover:text-white">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                          </button>
-                          <button className="text-red-400 hover:text-red-300">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="flex justify-center mt-6">
+              <Link 
+                to="/user/TasksPage" 
+                state={{ openProjectDetails: activeProject.id }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center text-sm transition-all duration-200 shadow-lg hover:shadow-blue-500/20"
+              >
+                <FaEye className="mr-2" /> View More Details
+              </Link>
             </div>
           </motion.div>
         )}
@@ -965,14 +960,14 @@ const Projects = () => {
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const [isUserEmployee, setIsUserEmployee] = useState(user?.role !== 'admin'); // Fetch from user context
+  const [isUserEmployee, setIsUserEmployee] = useState(user?.role !== 'admin');
   const navigate = useNavigate();
   
   // Add the CSS styles to the document
   useEffect(() => {
     // Create style element
     const styleElement = document.createElement('style');
-    styleElement.textContent = backgroundStyles;
+    styleElement.textContent = backgroundCSS;
     document.head.appendChild(styleElement);
     
     // Clean up on component unmount
