@@ -304,7 +304,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }) => {
   );
 };
 
-// Task Form Component
+// TaskForm Component
 const TaskForm = ({ task, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
@@ -312,213 +312,128 @@ const TaskForm = ({ task, onSubmit, onCancel }) => {
     priority: task?.priority || 'Medium',
     status: task?.status || 'To Do',
     dueDate: task?.dueDate || '',
-    assignedTo: task?.assignedTo || '',
-    type: task?.type || 'personal' // Default to personal, but keep original type if editing
+    assignedTo: task?.assignedTo || [],
+    type: task?.type || 'personal'
   });
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Ensure type is 'personal' for new tasks
-    const taskType = task ? formData.type : 'personal';
-    onSubmit({
+    setFormData({
       ...formData,
-      type: taskType,
-      id: task?.id || Date.now(),
-      assignedTo: formData.assignedTo.split(',').map(item => item.trim()).filter(item => item !== '')
+      [name]: value
     });
   };
-
-  // Determine if this is a personal or assigned task
-  const isPersonal = task ? task.type === 'personal' : true;
-  const isEditing = !!task;
-
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+  
   return (
-    <motion.form 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      onSubmit={handleSubmit} 
-      className="space-y-4"
-    >
-      {!isPersonal && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6 p-4 bg-purple-900/20 backdrop-blur-sm border border-purple-700 rounded-lg shadow-lg gradient-border"
-        >
-          <div className="flex items-center text-purple-400 mb-2">
-            <FaExclamationCircle className="mr-2" />
-            <span className="font-medium">Admin Assigned Task</span>
-          </div>
-          <p className="text-sm text-gray-300">This task was assigned by an administrator. You can update its status but cannot modify its core details.</p>
-        </motion.div>
-      )}
-
-      {isPersonal && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6 p-4 bg-blue-900/20 backdrop-blur-sm border border-blue-700 rounded-lg shadow-lg gradient-border"
-        >
-          <div className="flex items-center text-blue-400 mb-2">
-            <FaUser className="mr-2" />
-            <span className="font-medium">Personal Task</span>
-          </div>
-          <p className="text-sm text-gray-300">{isEditing ? "You can edit all details of this personal task." : "Creating a new personal task. You'll have full control over it."}</p>
-        </motion.div>
-      )}
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Task Title</label>
+    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pr-2">
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Task Title</label>
         <input 
           type="text" 
           name="title"
           value={formData.title}
           onChange={handleChange}
-          className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-500/50"
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Enter task title"
           required
-          disabled={!isPersonal && isEditing}
         />
       </div>
       
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
         <textarea 
           name="description"
           value={formData.description}
           onChange={handleChange}
-          className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px] transition-all duration-300 hover:border-blue-500/50"
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
           placeholder="Enter task description"
-          disabled={!isPersonal && isEditing}
         ></textarea>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Priority</label>
-          <select 
-            name="priority"
-            value={formData.priority}
-            onChange={handleChange}
-            className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-500/50"
-            disabled={!isPersonal && isEditing}
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-          <select 
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-500/50"
-          >
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="Blocked">Blocked</option>
-            <option value="Pending">Pending</option>
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Priority</label>
+        <select 
+          name="priority"
+          value={formData.priority}
+          onChange={handleChange}
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
       </div>
       
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
+        <select 
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="To Do">To Do</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Due Date</label>
         <input 
-          type="text" 
+          type="date" 
           name="dueDate"
           value={formData.dueDate}
           onChange={handleChange}
-          className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-500/50"
-          placeholder="e.g. May 30"
-          disabled={!isPersonal && isEditing}
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
       
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Assigned To (comma separated)</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Assigned To</label>
         <input 
           type="text" 
           name="assignedTo"
-          value={typeof formData.assignedTo === 'string' ? formData.assignedTo : formData.assignedTo.join(', ')}
-          onChange={handleChange}
-          className="w-full bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-500/50"
-          placeholder="e.g. John, Sarah, Mike"
-          disabled={!isPersonal && isEditing}
+          value={formData.assignedTo.join(', ')}
+          onChange={(e) => setFormData({
+            ...formData,
+            assignedTo: e.target.value.split(',').map(item => item.trim()).filter(item => item !== '')
+          })}
+          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter names separated by commas"
         />
       </div>
-
-      {/* Display task type but don't allow changing it */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Task Type</label>
-        <motion.div 
-          whileHover={{ boxShadow: isPersonal ? "0 0 10px rgba(59, 130, 246, 0.3)" : "0 0 10px rgba(168, 85, 247, 0.3)" }}
-          className={`px-4 py-2 rounded-lg border backdrop-blur-sm transition-all duration-300 ${isPersonal ? 'bg-blue-900/20 border-blue-700 hover:border-blue-500' : 'bg-purple-900/20 border-purple-700 hover:border-purple-500'}`}
-        >
-          {!isPersonal ? (
-            <div className="flex items-center">
-              <span className="text-purple-400 font-medium">Assigned</span>
-              <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <span className="text-blue-400 font-medium">Personal</span>
-              {!isEditing && <span className="ml-2 text-xs text-gray-400">(Default for new tasks)</span>}
-            </div>
-          )}
-        </motion.div>
+      
+      <div className="bg-gray-700/50 px-4 py-3 rounded-lg">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-400">Task Type</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${formData.type === 'personal' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+            {formData.type === 'personal' ? 'Personal Task' : 'Assigned Task'}
+          </span>
+        </div>
       </div>
       
       <div className="pt-4 flex justify-end space-x-3">
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button 
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 text-gray-300 hover:text-white rounded-lg transition-all duration-300 hover:border-blue-500/50 hover:bg-gray-600"
+          className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
         >
           Cancel
-        </motion.button>
-        <motion.button 
-          whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)" }}
-          whileTap={{ scale: 0.95 }}
+        </button>
+        <button 
           type="submit"
-          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 border border-blue-400/30 flex items-center"
-          disabled={!isPersonal && isEditing}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          {isEditing ? (
-            isPersonal ? (
-              <>
-                <FaCheck className="mr-2" /> Update Personal Task
-              </>
-            ) : (
-              <>
-                <FaCheck className="mr-2" /> Update Status Only
-              </>
-            )
-          ) : (
-            <>
-              <FaPlus className="mr-2" /> Add Personal Task
-            </>
-          )}
-        </motion.button>
+          {task ? 'Update Task' : 'Add Task'}
+        </button>
       </div>
-    </motion.form>
+    </form>
   );
 };
 
@@ -717,10 +632,32 @@ function TasksPage() {
           setFilter(prev => ({ ...prev, type: location.state.taskType }));
         }
       }
+      
+      // If redirected from dashboard with openTaskDetails flag
+      if (location.state.openTaskDetails) {
+        const taskId = location.state.openTaskDetails;
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          setEditingTask(task);
+        }
+      }
+      
+      // If redirected from dashboard with openProjectDetails flag
+      if (location.state.openProjectDetails) {
+        const projectId = location.state.openProjectDetails;
+        // Find tasks related to this project and set appropriate filters
+        setFilter(prev => ({ 
+          ...prev, 
+          type: 'all',
+          status: 'all',
+          priority: 'all'
+        }));
+      }
+      
       // Clear the location state to prevent modal from reopening on refresh
       navigate(location.pathname, { replace: true });
     }
-  }, [location, navigate]);
+  }, [location, navigate, tasks]);
 
   // Filter and sort tasks
   const filteredTasks = tasks.filter(task => {

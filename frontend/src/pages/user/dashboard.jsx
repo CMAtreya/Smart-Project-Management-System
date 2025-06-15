@@ -6,7 +6,7 @@ import {
   FaBell, FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
   FaRegClock, FaExclamationCircle, FaHeartbeat, FaProjectDiagram,
   FaClipboardCheck, FaChevronRight, FaClipboardList, FaLightbulb,
-  FaUserCog, FaUserTie, FaUsers, FaFilter, FaPlus, FaArrowRight
+  FaUserCog, FaUserTie, FaUsers, FaFilter, FaPlus, FaArrowRight, FaEye
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -162,6 +162,12 @@ const StressMonitor = () => {
 
 // Today's Tasks Component
 const TodaysTasks = () => {
+  const navigate = useNavigate();
+  
+  const handleTaskClick = (taskId) => {
+    navigate('/user/TasksPage', { state: { openTaskDetails: taskId } });
+  };
+  
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -179,9 +185,9 @@ const TodaysTasks = () => {
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-xs font-medium bg-blue-500/20 text-blue-400 py-1 px-3 rounded-full">4 tasks</span>
-          <button className="text-gray-400 hover:text-white transition-colors duration-200">
+          <Link to="/user/TasksPage" className="text-gray-400 hover:text-white transition-colors duration-200">
             <FaEllipsisH />
-          </button>
+          </Link>
         </div>
       </div>
       
@@ -191,6 +197,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(1)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-yellow-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -211,6 +218,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(2)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-blue-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -231,6 +239,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.4 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(3)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-green-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -251,6 +260,7 @@ const TodaysTasks = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}
           className="flex items-center p-4 bg-gray-700/30 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-all duration-200 cursor-pointer group"
+          onClick={() => handleTaskClick(4)}
         >
           <div className="mr-4">
             <div className="h-4 w-4 rounded-full bg-blue-500 group-hover:scale-110 transition-transform duration-200"></div>
@@ -268,7 +278,7 @@ const TodaysTasks = () => {
         
         <div className="pt-2 text-center">
           <Link to="/user/TasksPage" className="text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center transition-colors duration-200">
-            View all tasks <FaChevronRight className="ml-1 text-xs" />
+            View all tasks <FaArrowRight className="ml-1 text-xs" />
           </Link>
         </div>
       </div>
@@ -887,68 +897,14 @@ const Projects = () => {
               </div>
             </div>
             
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-white mb-2">Description</h4>
-              <p className="text-sm text-gray-400">{activeProject.description}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-white mb-2">Team Members</h4>
-              <div className="flex flex-wrap gap-2">
-                {activeProject.team.map((member, idx) => (
-                  <div key={idx} className="bg-gray-700 px-3 py-1 rounded-full text-xs text-white">
-                    {member}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-sm font-medium text-white">Tasks</h4>
-                {activeProject.type === 'personal' && (
-                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
-                    + Add Task
-                  </Link>
-                )}
-                {activeProject.type === 'assigned' && (
-                  <Link to="/user/tasks" className="text-xs text-blue-400 hover:text-blue-300">
-                    View Tasks
-                  </Link>
-                )}
-              </div>
-              <div className="space-y-2">
-                {activeProject.tasks.map((task, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-gray-700/50 p-2 rounded-lg">
-                    <div className="flex items-center">
-                      <div className={`
-                        h-4 w-4 rounded-full mr-2
-                        ${task.status === 'Completed' ? 'bg-green-500' : 
-                          task.status === 'In Progress' ? 'bg-blue-500' : 
-                          'bg-yellow-500'}
-                      `}></div>
-                      <span className="text-sm text-white">{task.name}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-400 mr-2">{task.status}</span>
-                      {activeProject.type === 'personal' && (
-                        <div className="flex space-x-1">
-                          <button className="text-gray-400 hover:text-white">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                          </button>
-                          <button className="text-red-400 hover:text-red-300">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="flex justify-center mt-6">
+              <Link 
+                to="/user/TasksPage" 
+                state={{ openProjectDetails: activeProject.id }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center text-sm transition-all duration-200 shadow-lg hover:shadow-blue-500/20"
+              >
+                <FaEye className="mr-2" /> View More Details
+              </Link>
             </div>
           </motion.div>
         )}
