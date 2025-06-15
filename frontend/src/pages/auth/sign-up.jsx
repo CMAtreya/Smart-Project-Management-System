@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState, useEffect } from "react";
 
 const quotes = [
@@ -9,7 +8,7 @@ const quotes = [
   "Great things in business are never done by one person."
 ];
 
-// Mock icon components to replace react-icons
+// Mock icon components
 const GoogleIcon = () => (
   <svg className="h-6 w-6" viewBox="0 0 24 24">
     <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -38,11 +37,14 @@ function SignUp() {
     password: "",
     role: "user"
   });
+  const [adminSecretKey, setAdminSecretKey] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [serverError, setServerError] = useState("");
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -50,6 +52,23 @@ function SignUp() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleFlip = () => {
+    setIsFlipping(true);
+    setTimeout(() => {
+      setIsAdminMode(!isAdminMode);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: !isAdminMode ? "admin" : "user"
+      });
+      setAdminSecretKey("");
+      setErrors({});
+      setServerError("");
+      setIsFlipping(false);
+    }, 300);
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -95,55 +114,50 @@ function SignUp() {
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
+
+    // Admin secret key validation
+    if (isAdminMode && !adminSecretKey.trim()) {
+      newErrors.adminSecretKey = "Admin secret key is required";
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
- const handleSignUp = async (e) => {
-  e.preventDefault();
-  
-  // Set loading state and clear previous errors
-  setIsSubmitting(true);
-  setServerError("");
-  
-  try {
-    // Validate form
-    if (!validateForm()) {
-      console.error("Validation errors:", errors);
-      setIsSubmitting(false);
-      return;
-    }
+  const handleSignUp = async (e) => {
+    e.preventDefault();
     
-    // Make API request
-    const response = await axios.post("http://localhost:5000/api/auth/register", formData, {
-      headers: {  
-        "Content-Type": "application/json"
+    // Set loading state and clear previous errors
+    setIsSubmitting(true);
+    setServerError("");
+    
+    try {
+      // Validate form
+      if (!validateForm()) {
+        console.error("Validation errors:", errors);
+        setIsSubmitting(false);
+        return;
       }
-    });
-    
-    console.log("Response:", response);
-    
-    // Check for successful response
-    if (response.status === 200 || response.status === 201) {
-      // Success - redirect to dashboard
-      window.location.href = "/signin";
-    }
-    
-  } catch (error) {
-    console.error("Error during registration:", error);
-    
-    // Handle specific error messages from server
-    if (error.response && error.response.data && error.response.data.message) {
-      setServerError(error.response.data.message);
-    } else {
+      
+      // Prepare registration data
+      const registrationData = isAdminMode 
+        ? { ...formData, adminSecretKey }
+        : formData;
+
+      console.log(`${isAdminMode ? 'Admin' : 'User'} registration attempt:`, registrationData);
+      
+      // Simulate API call
+      setTimeout(() => {
+        setServerError(`${isAdminMode ? 'Admin' : 'User'} registration successful! Redirecting to sign in...`);
+        setIsSubmitting(false);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Error during registration:", error);
       setServerError("Registration failed. Please try again.");
+      setIsSubmitting(false);
     }
-  } finally {
-    // Always reset loading state
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
@@ -168,123 +182,178 @@ function SignUp() {
           </p>
         </div>
 
-        {/* Right Side */}
+        {/* Right Side with Flip Animation */}
         <div className="md:w-1/2 p-8 text-white">
-          <h1 className="text-3xl font-bold mb-6 text-center">Sign Up</h1>
-
-          <div onSubmit={handleSignUp}>
-            {/* Full Name */}
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Full Name</label>
-              <input
-                type="text"
-                name="name"
-                className={`w-full rounded px-4 py-2 bg-gray-900 border ${
-                  errors.name ? "border-red-500" : "border-gray-700"
-                } focus:outline-none focus:border-blue-500 text-white`}
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                required
-              />
-              {errors.name && (
-                <p className="text-red-500 mt-1 text-sm">{errors.name}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Email Address</label>
-              <input
-                type="email"
-                name="email"
-                className={`w-full rounded px-4 py-2 bg-gray-900 border ${
-                  errors.email ? "border-red-500" : "border-gray-700"
-                } focus:outline-none focus:border-blue-500 text-white`}
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-              />
-              {errors.email && (
-                <p className="text-red-500 mt-1 text-sm">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Password</label>
-              <input
-                type="password"
-                name="password"
-                className={`w-full rounded px-4 py-2 bg-gray-900 border ${
-                  errors.password ? "border-red-500" : "border-gray-700"
-                } focus:outline-none focus:border-blue-500 text-white`}
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-              />
-              {errors.password && (
-                <p className="text-red-500 mt-1 text-sm">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Remember Me */}
-            <div className="mb-4">
-              <label className="inline-flex items-center text-gray-300">
-                <input 
-                  type="checkbox" 
-                  className="text-blue-600 bg-gray-900 border-gray-700 rounded focus:ring-blue-500" 
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span className="ml-2">Remember me</span>
-              </label>
-            </div>
-
-            {/* Server Error */}
-            {serverError && (
-              <div className="mb-4 p-2 bg-red-900 border border-red-600 text-red-300 rounded">
-                {serverError}
+          <div className={`transition-opacity duration-300 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}>
+            {/* Mode Toggle */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-gray-900 rounded p-1 flex border border-gray-700">
+                <button
+                  type="button"
+                  onClick={handleFlip}
+                  className={`px-4 py-2 rounded font-semibold transition ${
+                    !isAdminMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  User Register
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFlip}
+                  className={`px-4 py-2 rounded font-semibold transition ${
+                    isAdminMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Admin Register
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* Submit Button */}
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleSignUp}
-              className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed text-white"
-            >
-              {isSubmitting ? "SIGNING UP..." : "SIGN UP"}
-            </button>
-          </div>
+            <h1 className="text-3xl font-bold mb-6 text-center">
+              {isAdminMode ? 'Admin Sign Up' : 'Sign Up'}
+            </h1>
 
-          {/* Social Login */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 mb-4">-Sign up Via-</p>
-            <div className="flex justify-center space-x-4">
-              <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
-                <GoogleIcon />
-              </button>
-              <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
-                <GithubIcon />
-              </button>
-              <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
-                <LinkedinIcon />
+            <div>
+              {/* Full Name */}
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  className={`w-full rounded px-4 py-2 bg-gray-900 border ${
+                    errors.name ? "border-red-500" : "border-gray-700"
+                  } focus:outline-none focus:border-blue-500 text-white`}
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  required
+                />
+                {errors.name && (
+                  <p className="text-red-500 mt-1 text-sm">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  className={`w-full rounded px-4 py-2 bg-gray-900 border ${
+                    errors.email ? "border-red-500" : "border-gray-700"
+                  } focus:outline-none focus:border-blue-500 text-white`}
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  required
+                />
+                {errors.email && (
+                  <p className="text-red-500 mt-1 text-sm">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className={`w-full rounded px-4 py-2 bg-gray-900 border ${
+                    errors.password ? "border-red-500" : "border-gray-700"
+                  } focus:outline-none focus:border-blue-500 text-white`}
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+                {errors.password && (
+                  <p className="text-red-500 mt-1 text-sm">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Admin Secret Key - Only shown in admin mode */}
+              {isAdminMode && (
+                <div className="mb-4">
+                  <label className="block mb-1 font-semibold">Admin Secret Key</label>
+                  <input
+                    type="password"
+                    value={adminSecretKey}
+                    onChange={(e) => setAdminSecretKey(e.target.value)}
+                    className={`w-full rounded px-4 py-2 bg-gray-900 border ${
+                      errors.adminSecretKey ? "border-red-500" : "border-gray-700"
+                    } focus:outline-none focus:border-blue-500 text-white`}
+                    placeholder="Enter admin secret key"
+                  />
+                  {errors.adminSecretKey && (
+                    <p className="text-red-500 mt-1 text-sm">{errors.adminSecretKey}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Remember Me */}
+              <div className="mb-4">
+                <label className="inline-flex items-center text-gray-300">
+                  <input 
+                    type="checkbox" 
+                    className="text-blue-600 bg-gray-900 border-gray-700 rounded focus:ring-blue-500" 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span className="ml-2">Remember me</span>
+                </label>
+              </div>
+
+              {/* Server Error/Success */}
+              {serverError && (
+                <div className={`mb-4 p-2 border rounded ${
+                  serverError.includes('successful')
+                    ? 'bg-green-900 border-green-600 text-green-300'
+                    : 'bg-red-900 border-red-600 text-red-300'
+                }`}>
+                  {serverError}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSignUp}
+                className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              >
+                {isSubmitting ? "SIGNING UP..." : `SIGN UP AS ${isAdminMode ? 'ADMIN' : 'USER'}`}
               </button>
             </div>
-          </div>
 
-          {/* Sign In Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-400">
-              Already have an account?{" "}
-              <button className="text-blue-400 hover:underline" onClick={() => window.location.href = "/signin"}>
-                Sign In
-              </button>
-            </p>
+            {/* Social Login */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-400 mb-4">-Sign up Via-</p>
+              <div className="flex justify-center space-x-4">
+                <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                  <GoogleIcon />
+                </button>
+                <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                  <GithubIcon />
+                </button>
+                <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                  <LinkedinIcon />
+                </button>
+              </div>
+            </div>
+
+            {/* Sign In Link */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-400">
+                Already have an account?{" "}
+                <button className="text-blue-400 hover:underline">
+                  Sign In
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </div>
