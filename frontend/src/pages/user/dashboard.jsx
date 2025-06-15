@@ -277,51 +277,6 @@ const TodaysTasks = () => {
 };
 
 // Monthly Tasks Component
-const MonthlyTasks = () => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const data = [
-    { day: 'Mon', value: 30 },
-    { day: 'Tue', value: 75 },
-    { day: 'Wed', value: 50 },
-    { day: 'Thu', value: 65 },
-    { day: 'Fri', value: 40 },
-    { day: 'Sat', value: 20 }
-  ];
-  
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-      className="dashboard-card bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700 backdrop-blur-sm bg-opacity-80"
-      whileHover={{ scale: 1.02, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)' }}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-white">MONTHLY TASKS</h3>
-        <button className="text-gray-400 hover:text-white">
-          <FaEllipsisH />
-        </button>
-      </div>
-      
-      <div className="space-y-4">
-        {data.map((item, index) => (
-          <div key={index} className="space-y-1">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">{item.day}</span>
-              <span className="text-xs text-gray-500">{item.value}%</span>
-            </div>
-            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full ${index % 2 === 0 ? 'bg-blue-500' : 'bg-gradient-to-r from-blue-400 to-purple-500'}`} 
-                style={{ width: `${item.value}%` }}
-              ></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </motion.div>
-  );
-};
 
 // Calendar Component
 const CalendarWidget = () => {
@@ -1068,7 +1023,7 @@ const Projects = () => {
             </div>
           </motion.div>
         </div>
-      )}}
+      )}
     </motion.div>
   );
 };
@@ -1217,7 +1172,7 @@ function Dashboard() {
                 <div className="lg:col-span-3"> {/* Approximately 3/8 of the width */}
                   <div className="grid grid-cols-1 gap-6">
                     <CalendarWidget />
-                    <MonthlyTasks />
+                
                   </div>
                 </div>
               </div>
