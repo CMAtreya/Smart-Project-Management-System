@@ -25,21 +25,13 @@ const Navbar = () => {
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
 
-  const navLinks = user?.role === "admin"
-    ? [
+  const navLinks = 
+     [
         { name: "Dashboard", path: "/user/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
         { name: "Projects", path: "/user/finishedproject", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
         { name: "Tasks", path: "/user/TasksPage", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
         { name: "Calendar", path: "/user/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
         { name: "Analytics", path: "/user/charts", icon: <HiOutlineChartBar className="w-5 h-5" /> },
-        { name: "Chat", path: "/user/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
-      ]
-    : [
-        { name: "Dashboard", path: "/user/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
-        { name: "Projects", path: "/user/finishedproject", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
-        { name: "Tasks", path: "/user/TasksPage", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
-        { name: "Calendar", path: "/user/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
-        { name: "Assigned Work", path: "/user/assignwork", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
         { name: "Chat", path: "/user/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
       ];
 

@@ -29,7 +29,7 @@ const projectService = {
   getAllProjects: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const url = `/projects${queryParams ? `?${queryParams}` : ''}`;
+      const url = `/projects/my-projects`;
       const response = await api.get(url);
       return response.data;
     } catch (error) {

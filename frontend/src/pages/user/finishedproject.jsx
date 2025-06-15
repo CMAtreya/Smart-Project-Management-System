@@ -21,7 +21,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 p-8 space-y-6 overflow-y-auto">
-        <h1 className="text-3xl font-bold mb-4">Finished Projects Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-4"> Projects Dashboard</h1>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-6">

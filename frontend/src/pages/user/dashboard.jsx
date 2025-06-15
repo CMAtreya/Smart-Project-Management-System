@@ -535,74 +535,8 @@ const Projects = () => {
   // Sample projects data with type field to distinguish personal vs assigned
   const [projects, setProjects] = useState([
     {
-      id: 1,
-      name: "Website Redesign",
-      client: "TechCorp Inc.",
-      priority: "High",
-      deadline: "Oct 25",
-      progress: 65,
-      team: ["Sarah", "Mike", "Alex"],
-      description: "Complete overhaul of the company website with new branding and improved user experience.",
-      type: "personal", // Personal project - can be edited
-      tasks: [
-        { name: "Wireframing", status: "Completed" },
-        { name: "UI Design", status: "In Progress" },
-        { name: "Frontend Development", status: "Pending" },
-        { name: "Backend Integration", status: "Pending" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Mobile App Development",
-      client: "Innovate Solutions",
-      priority: "Medium",
-      deadline: "Nov 10",
-      progress: 30,
-      team: ["John", "Lisa", "David"],
-      description: "Develop a cross-platform mobile application for inventory management with offline capabilities.",
-      type: "assigned", // Assigned project - cannot be edited
-      tasks: [
-        { name: "Requirements Gathering", status: "Completed" },
-        { name: "UI/UX Design", status: "Completed" },
-        { name: "Frontend Development", status: "In Progress" },
-        { name: "Backend Development", status: "Pending" }
-      ]
-    },
-    {
-      id: 3,
-      name: "Marketing Campaign",
-      client: "GrowFast Agency",
-      priority: "Low",
-      deadline: "Oct 30",
-      progress: 85,
-      team: ["Emma", "Ryan"],
-      description: "Create and execute a digital marketing campaign across multiple platforms to increase brand awareness.",
-      type: "personal", // Personal project - can be edited
-      tasks: [
-        { name: "Strategy Planning", status: "Completed" },
-        { name: "Content Creation", status: "Completed" },
-        { name: "Campaign Setup", status: "Completed" },
-        { name: "Performance Monitoring", status: "In Progress" }
-      ]
-    },
-    {
-      id: 4,
-      name: "Database Migration",
-      client: "SecureData Systems",
-      priority: "High",
-      deadline: "Nov 5",
-      progress: 40,
-      team: ["Tom", "Anna", "Chris", "Maria"],
-      description: "Migrate existing database to a new cloud infrastructure with zero downtime and improved security.",
-      type: "assigned", // Assigned project - cannot be edited
-      tasks: [
-        { name: "Planning", status: "Completed" },
-        { name: "Data Mapping", status: "In Progress" },
-        { name: "Migration Script", status: "In Progress" },
-        { name: "Testing", status: "Pending" }
-      ]
-    }
-  ]);
+      
+}]);
   
   // Filter projects by type
   const [activeFilter, setActiveFilter] = useState('all');

@@ -352,7 +352,7 @@ const TaskForm = ({ task, onSubmit, onCancel }) => {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.3 }}  
           className="mb-6 p-4 bg-purple-900/20 backdrop-blur-sm border border-purple-700 rounded-lg shadow-lg gradient-border"
         >
           <div className="flex items-center text-purple-400 mb-2">

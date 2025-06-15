@@ -12,32 +12,6 @@ const TaskSchema = new mongoose.Schema({
     required: [true, 'Please provide a task description'],
     maxlength: [1000, 'Description cannot be more than 1000 characters']
   },
-  project: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: [true, 'Task must be associated with a project']
-  },
-  assignedTo: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  startDate: {
-    type: Date,
-    required: [true, 'Please provide a start date']
-  },
-  dueDate: {
-    type: Date,
-    required: [true, 'Please provide a due date']
-  },
-  estimatedHours: {
-    type: Number,
-    min: 0
-  },
-  actualHours: {
-    type: Number,
-    min: 0,
-    default: 0
-  },
   priority: {
     type: String,
     enum: ['Low', 'Medium', 'High', 'Urgent'],
@@ -48,35 +22,20 @@ const TaskSchema = new mongoose.Schema({
     enum: ['To Do', 'In Progress', 'Review', 'Done'],
     default: 'To Do'
   },
-  progress: {
-    type: Number,
-    min: 0,
-    max: 100,
-    default: 0
+  dueDate: {
+    type: Date,
+    required: [true, 'Please provide a due date']
   },
-  dependencies: [{
+  assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Task'
-  }],
-  attachments: [{
-    name: String,
-    path: String,
-    uploadedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  comments: [{
-    text: String,
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+    ref: 'User',
+    required: [true, 'Please assign the task to someone']
+  },
+  type: {
+    type: String,
+    enum: ['personal', 'team'],
+    default: 'personal'
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -92,8 +51,8 @@ const TaskSchema = new mongoose.Schema({
   }
 });
 
-// Update the updatedAt field before saving
-TaskSchema.pre('save', function(next) {
+// Automatically update `updatedAt` before save
+TaskSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });
