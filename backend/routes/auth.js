@@ -10,8 +10,8 @@ const JWT_LIFETIME = process.env.JWT_LIFETIME || '30d';
 // Register a new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
- console.log(name,email,password );
+    const { name, email, password, role } = req.body;
+ console.log(name,email,password ,role);
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Create new user
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password ,role });
     
     // Generate JWT token
     const token = jwt.sign(
@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password , role } = req.body;
 
     // Check if user exists
     const user = await User.findOne({ email });
@@ -60,6 +60,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
 
       
+    }
+    const userrole = await user.findOne({role});
+    if(req.body.role != userrole){
+      return res.status(401).json({ message : ' role doesnot match'});
     }
 
 
