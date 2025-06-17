@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { login } from './../../contexts/AuthContext'
+
 
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
@@ -57,7 +59,7 @@ export default function SignIn() {
     const loginData = isAdminMode 
       ? { email, password, adminSecretKey }
       : { email, password };
-
+       
     console.log(`${isAdminMode ? 'Admin' : 'User'} login attempt:`, loginData);
     
     // Simulate successful login
