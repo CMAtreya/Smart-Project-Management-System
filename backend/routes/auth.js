@@ -107,5 +107,15 @@ router.get('/me', async (req, res) => {
     res.status(500).json({ message: 'Something went wrong', error: error.message });
   }
 });
+// GET ALL NON-ADMIN USERS
+router.get('/all-users', async (req, res) => {
+  try {
+    const users = await User.find({ role: 'user' }, 'name email role'); // Only users with role 'user'
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Fetch users error:', error);
+    res.status(500).json({ message: 'Failed to fetch users', error: error.message });
+  }
+});
 
 module.exports = router;

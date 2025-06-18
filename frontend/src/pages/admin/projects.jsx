@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { 
+import { Link, useNavigate } from 'react-router-dom'; 
+import { toast } from 'react-toastify';
+
+import axios from 'axios'
+import{
   FaTasks, FaChartBar, FaCalendarAlt, FaUser, FaSignOutAlt, 
   FaBell, FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
   FaRegClock, FaExclamationCircle, FaFilter, FaPlus, FaTrash, FaPencilAlt,
@@ -155,13 +158,12 @@ const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
             <FaUsers className="text-gray-400 mr-2" />
             <span className="text-xs text-gray-300">{project.teamMembers.length} team members</span>
           </div>
-          <div className="flex -space-x-2">
-            {project.teamMembers.slice(0, 3).map((member, index) => (
+          <div className="flex -space-x-2">            {project.teamMembers?.slice(0, 3).map((member, index) => (
               <div key={index} className="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-800 flex items-center justify-center text-xs text-white">
-                {member.name.charAt(0)}
+                {member?.name ? member.name.charAt(0) : member?.email?.charAt(0) || '?'}
               </div>
             ))}
-            {project.teamMembers.length > 3 && (
+            {(project.teamMembers?.length > 3) && (
               <div className="w-8 h-8 rounded-full bg-blue-600 border-2 border-gray-800 flex items-center justify-center text-xs text-white">
                 +{project.teamMembers.length - 3}
               </div>
@@ -198,7 +200,8 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
   const initialFormState = project ? {
     ...project,
     startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-    endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : ''
+    endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+    teamMembers: project.teamMembers || []
   } : {
     title: '',
     description: '',
@@ -207,22 +210,26 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
     priority: 'Medium',
     status: 'Not Started',
     progress: 0,
-    teamMembers: [],
-    taskType: 'Feature'
+    teamMembers: []
   };
 
   const [formData, setFormData] = useState(initialFormState);
-  const [availableUsers, setAvailableUsers] = useState([
-    { id: 'user1', name: 'John Doe', role: 'Developer' },
-    { id: 'user2', name: 'Jane Smith', role: 'Designer' },
-    { id: 'user3', name: 'Mike Johnson', role: 'Project Manager' },
-    { id: 'user4', name: 'Sarah Williams', role: 'QA Engineer' },
-    { id: 'user5', name: 'David Brown', role: 'DevOps Engineer' },
-    { id: 'user6', name: 'Emily Davis', role: 'UI/UX Designer' },
-    { id: 'user7', name: 'Robert Wilson', role: 'Backend Developer' },
-    { id: 'user8', name: 'Lisa Taylor', role: 'Frontend Developer' }
-  ]);
+  const [availableUsers, setAvailableUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('/auth/all-users');
+        setAvailableUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to load users');
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -230,36 +237,71 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
   };
 
   const handleAddTeamMember = (user) => {
-    if (!formData.teamMembers.some(member => member.id === user.id)) {
+    if (!formData.teamMembers.some(member => member._id === user._id)) {
       setFormData(prev => ({
         ...prev,
         teamMembers: [...prev.teamMembers, user]
       }));
+      setSearchTerm('');
     }
   };
 
   const handleRemoveTeamMember = (userId) => {
     setFormData(prev => ({
       ...prev,
-      teamMembers: prev.teamMembers.filter(member => member.id !== userId)
+      teamMembers: prev.teamMembers.filter(member => member._id !== userId)
     }));
   };
 
-  const filteredUsers = availableUsers.filter(user => 
+  const filteredUsers = availableUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      priority: formData.priority,
+      status: formData.status,
+      progress: formData.progress,
+      teamMembers: formData.teamMembers.map(member => member._id),
+    };
+
+    try {
+      if (project) {
+        // Update existing project
+        await axios.patch(`http://localhost:5000/api/projects/${project._id}`, payload, {
+          withCredentials: true,
+        });
+        toast.success('Project updated successfully!');
+      } else {
+        // Create new project
+        console.log(payload)
+        await axios.post('http://localhost:5000/api/projects/create', payload, {
+          withCredentials: true,
+        });
+        toast.success('Project created successfully!');
+      }
+
+      onClose();
+      if (onSave) onSave(payload); // send back the data
+; // Optional callback
+    } catch (error) {
+      console.error('Error saving project:', error);
+      toast.error('Failed to save project');
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
@@ -269,7 +311,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
           <h2 className="text-2xl font-bold text-white">
             {project ? 'Edit Project' : 'Create New Project'}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-400 hover:text-white transition-colors"
           >
@@ -288,7 +330,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   placeholder="Enter project title"
                 />
               </div>
@@ -301,7 +343,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                   onChange={handleChange}
                   required
                   rows="4"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white resize-none"
                   placeholder="Enter project description"
                 ></textarea>
               </div>
@@ -315,7 +357,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     value={formData.startDate}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   />
                 </div>
 
@@ -327,7 +369,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     value={formData.endDate}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   />
                 </div>
               </div>
@@ -339,7 +381,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     name="priority"
                     value={formData.priority}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -354,7 +396,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   >
                     <option value="Not Started">Not Started</option>
                     <option value="In Progress">In Progress</option>
@@ -387,44 +429,46 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white pl-10"
                     placeholder="Search users..."
                   />
                   <FaSearch className="absolute left-3 top-3 text-gray-400" />
                 </div>
 
-                <div className="mt-2 max-h-40 overflow-y-auto bg-gray-700 rounded-lg border border-gray-600">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map(user => (
-                      <div 
-                        key={user.id} 
-                        className="flex items-center justify-between p-3 hover:bg-gray-600 cursor-pointer border-b border-gray-600 last:border-b-0"
-                        onClick={() => handleAddTeamMember(user)}
-                      >
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium mr-3">
-                            {user.name.charAt(0)}
+                {searchTerm && (
+                  <div className="mt-2 max-h-40 overflow-y-auto bg-gray-700 rounded-lg border border-gray-600">
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map(user => (
+                        <div
+                          key={user._id}
+                          className="flex items-center justify-between p-3 hover:bg-gray-600 cursor-pointer border-b border-gray-600 last:border-b-0"
+                          onClick={() => handleAddTeamMember(user)}
+                        >
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium mr-3">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-white">{user.name}</p>
+                              <p className="text-xs text-gray-400">{user.role}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-white">{user.name}</p>
-                            <p className="text-xs text-gray-400">{user.role}</p>
-                          </div>
+                          <FaUserPlus className="text-blue-400 hover:text-blue-300" />
                         </div>
-                        <FaUserPlus className="text-blue-400 hover:text-blue-300" />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-center text-gray-400">No users found</div>
-                  )}
-                </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-center text-gray-400">No users found</div>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-gray-300 mb-2">Selected Team Members</h4>
                   {formData.teamMembers.length > 0 ? (
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {formData.teamMembers.map(member => (
-                        <div 
-                          key={member.id} 
+                        <div
+                          key={member._id}
                           className="flex items-center justify-between p-2 bg-gray-700 rounded-lg border border-gray-600"
                         >
                           <div className="flex items-center">
@@ -433,9 +477,9 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                             </div>
                             <span className="text-sm text-white">{member.name}</span>
                           </div>
-                          <button 
+                          <button
                             type="button"
-                            onClick={() => handleRemoveTeamMember(member.id)}
+                            onClick={() => handleRemoveTeamMember(member._id)}
                             className="text-red-400 hover:text-red-300"
                           >
                             <FaTrash size={12} />
@@ -449,24 +493,6 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Task Type</label>
-                <select
-                  name="taskType"
-                  value={formData.taskType || 'Feature'}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="Feature">Feature</option>
-                  <option value="Bug">Bug</option>
-                  <option value="Documentation">Documentation</option>
-                  <option value="Research">Research</option>
-                  <option value="Design">Design</option>
-                  <option value="Testing">Testing</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
               </div>
             </div>
           </div>
@@ -492,6 +518,63 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
   );
 };
 
+// Main Component with Create Button
+const ProjectFormComponent = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentProject, setCurrentProject] = useState(null);
+
+  const handleCreateProject = () => {
+    setCurrentProject(null);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveProject = (projectData) => {
+  if (!projectData) return;
+
+  if (currentProject) {
+    Projects(prev =>
+      prev.map(p => p._id === currentProject._id ? { ...p, ...projectData } : p)
+    );
+  } else {
+    const newProject = {
+      ...projectData,
+      _id: Date.now(), // TEMP ID — ideally comes from DB
+      createdAt: new Date().toISOString()
+    };
+    Projects(prev => [...prev, newProject]);
+  }
+
+  setIsModalOpen(false);
+};
+
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#1e1e1e] to-[#121212] text-white p-8">
+      <div className="container mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 flex items-center">
+              <FaProjectDiagram className="mr-3 text-blue-500" /> Project Management
+            </h1>
+            <p className="text-gray-400">Create and manage your projects</p>
+          </div>
+          
+          <button
+            onClick={handleCreateProject}
+            className="mt-4 md:mt-0 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center transition-colors shadow-lg hover:shadow-blue-500/25"
+          >
+            <FaPlus className="mr-2" /> Create New Project
+          </button>
+        </div>
+
+        {/* Project Form Modal */}
+        
+      </div>
+    </div>
+  );
+};  
+
 // Main Projects Component
 function Projects() {
   const [loading, setLoading] = useState(true);
@@ -505,123 +588,25 @@ function Projects() {
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const navigate = useNavigate();
   
-  // Add the CSS styles to the document
-  useEffect(() => {
-    // Create style element
-    const styleElement = document.createElement('style');
-    styleElement.textContent = backgroundCSS;
-    document.head.appendChild(styleElement);
-    
-    // Clean up on component unmount
-    return () => {
-      document.head.removeChild(styleElement);
-    };
-  }, []);
-
-  // Fetch projects (mock data for now)
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const mockProjects = [
-        {
-          id: 1,
-          title: 'Website Redesign',
-          description: 'Complete overhaul of the company website with modern design and improved user experience',
-          startDate: '2023-06-01',
-          endDate: '2023-08-15',
-          priority: 'High',
-          status: 'In Progress',
-          progress: 65,
-          teamMembers: [
-            { id: 'user1', name: 'John Doe', role: 'Developer' },
-            { id: 'user2', name: 'Jane Smith', role: 'Designer' },
-            { id: 'user6', name: 'Emily Davis', role: 'UI/UX Designer' }
-          ],
-          taskType: 'Design'
-        },
-        {
-          id: 2,
-          title: 'Mobile App Development',
-          description: 'Develop a cross-platform mobile application for customer engagement and loyalty program',
-          startDate: '2023-05-15',
-          endDate: '2023-09-30',
-          priority: 'Urgent',
-          status: 'In Progress',
-          progress: 40,
-          teamMembers: [
-            { id: 'user1', name: 'John Doe', role: 'Developer' },
-            { id: 'user7', name: 'Robert Wilson', role: 'Backend Developer' },
-            { id: 'user8', name: 'Lisa Taylor', role: 'Frontend Developer' },
-            { id: 'user4', name: 'Sarah Williams', role: 'QA Engineer' }
-          ],
-          taskType: 'Feature'
-        },
-        {
-          id: 3,
-          title: 'Database Migration',
-          description: 'Migrate the existing database to a new cloud-based solution with improved security and performance',
-          startDate: '2023-07-01',
-          endDate: '2023-08-15',
-          priority: 'Medium',
-          status: 'Not Started',
-          progress: 0,
-          teamMembers: [
-            { id: 'user5', name: 'David Brown', role: 'DevOps Engineer' },
-            { id: 'user7', name: 'Robert Wilson', role: 'Backend Developer' }
-          ],
-          tags: ['Database', 'DevOps', 'Cloud']
-        },
-        {
-          id: 4,
-          title: 'Marketing Campaign',
-          description: 'Launch a comprehensive digital marketing campaign to increase brand awareness and customer acquisition',
-          startDate: '2023-06-15',
-          endDate: '2023-07-30',
-          priority: 'Medium',
-          status: 'Completed',
-          progress: 100,
-          teamMembers: [
-            { id: 'user3', name: 'Mike Johnson', role: 'Project Manager' }
-          ],
-          tags: ['Marketing', 'Digital', 'Social Media']
-        },
-        {
-          id: 5,
-          title: 'Security Audit',
-          description: 'Conduct a comprehensive security audit of all systems and implement necessary improvements',
-          startDate: '2023-08-01',
-          endDate: '2023-09-15',
-          priority: 'High',
-          status: 'Not Started',
-          progress: 0,
-          teamMembers: [
-            { id: 'user5', name: 'David Brown', role: 'DevOps Engineer' },
-            { id: 'user4', name: 'Sarah Williams', role: 'QA Engineer' }
-          ],
-          tags: ['Security', 'Compliance', 'DevOps']
-        },
-        {
-          id: 6,
-          title: 'Customer Portal Enhancement',
-          description: 'Add new features and improve existing functionality in the customer portal',
-          startDate: '2023-07-15',
-          endDate: '2023-10-30',
-          priority: 'Low',
-          status: 'In Progress',
-          progress: 25,
-          teamMembers: [
-            { id: 'user1', name: 'John Doe', role: 'Developer' },
-            { id: 'user8', name: 'Lisa Taylor', role: 'Frontend Developer' },
-            { id: 'user2', name: 'Jane Smith', role: 'Designer' }
-          ],
-          tags: ['Frontend', 'UX', 'Customer Experience']
+useEffect(() => {
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/projects/projects', {
+        headers: {
+          Authorization: `Bearer YOUR_JWT_TOKEN`, // Replace this dynamically if using AuthContext
         }
-      ];
-      
-      setProjects(mockProjects);
+      });
+      setProjects(response.data.projects || []); // Make sure your API returns `projects` key
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast.error('Failed to load projects');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  fetchProjects();
+}, []);
 
   const handleCreateProject = () => {
     setCurrentProject(null);
@@ -938,7 +923,7 @@ function Projects() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map(project => (
                   <ProjectCard 
-                    key={project.id}
+                    key={project._id}
                     project={project}
                     onViewDetails={handleViewDetails}
                     onEdit={handleEditProject}

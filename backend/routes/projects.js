@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const { authenticateUser } = require('../middleware/auth');
+const User = require('../models/User'); // ✅ Make sure this is added
 
 router.use(authenticateUser);
 
@@ -46,20 +47,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/projects/my-projects
-router.get('/my-projects', async (req, res) => {
+router.get('/projects', authenticateUser, async (req, res) => {
   try {
-    const projects = await Project.find({
-      createdBy: req.user.userId
-    })
-      .populate('team', 'name')
-      .populate('createdBy', 'name email')
-      .sort({ updatedAt: -1 });
-
-    res.status(200).json({ projects, count: projects.length });
+    const projects = await Project.find()
+      .populate('teamMembers', 'name role')
+      .populate('createdBy', 'name email');
+    res.status(200).json({ projects });
   } catch (error) {
-    console.error('Get user projects error:', error);
-    res.status(500).json({ message: 'Failed to fetch your projects', error: error.message });
+    console.error('Fetch projects error:', error);
+    res.status(500).json({ message: 'Failed to fetch projects' });
   }
 });
 
@@ -82,13 +78,23 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/projects
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
-    const { title, description, startDate, endDate, team } = req.body;
+    const {
+      title,
+      description,
+      startDate,
+      endDate,
+      priority,
+      status,
+      progress,
+      teamMembers
+    } = req.body;
 
-    if (!title || !description || !startDate || !endDate || !team) {
+    // Validation
+    if (!title || !description || !startDate || !endDate || !teamMembers || !teamMembers.length) {
       return res.status(400).json({
-        message: 'Missing required fields: title, description, startDate, endDate, team'
+        message: 'Missing required fields: title, description, startDate, endDate, teamMembers'
       });
     }
 
@@ -103,20 +109,36 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'End date must be after start date' });
     }
 
-    req.body.createdBy = req.user.userId;
+    // Extract only the user IDs
+    const teamMemberIds = teamMembers.map(member => member._id);
 
-    const project = await Project.create(req.body);
+    // Attach creator (assuming middleware added req.user)
+    req.body.createdBy = req.user?.userId || null;
+
+    const project = await Project.create({
+      title,
+      description,
+      startDate: start,
+      endDate: end,
+      priority,
+      status,
+      progress,
+      teamMembers: teamMemberIds,
+      createdBy: req.body.createdBy
+    });
 
     const populatedProject = await Project.findById(project._id)
-      .populate('team', 'name members')
+      .populate('teamMembers', 'name email role')
       .populate('createdBy', 'name email');
 
     res.status(201).json({ project: populatedProject });
+
   } catch (error) {
     console.error('Create project error:', error);
     res.status(500).json({ message: 'Failed to create project', error: error.message });
   }
 });
+
 
 // PATCH /api/projects/:id
 router.patch('/:id', async (req, res) => {
