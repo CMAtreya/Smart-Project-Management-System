@@ -47,15 +47,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
     'Blocked': 'bg-red-500/20 text-red-400 border-red-500/30'
   };
 
-  const typeIcons = {
-    'Feature': <FaLightbulb className="mr-1" />,
-    'Bug': <FaExclamation className="mr-1" />,
-    'Documentation': <FaFileAlt className="mr-1" />,
-    'Research': <FaSearch className="mr-1" />,
-    'Design': <FaPencilAlt className="mr-1" />,
-    'Testing': <FaClipboardList className="mr-1" />,
-    'Maintenance': <FaUserCog className="mr-1" />
-  };
+
 
   // Calculate days remaining
   const calculateDaysRemaining = (dueDate) => {
@@ -91,11 +83,11 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
                <FaRegClock className="mr-1 inline-block" />} 
               {task.status}
             </span>
-            {task.type && (
-              <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                {typeIcons[task.type]} {task.type}
+            {task.tags && task.tags.length > 0 && task.tags.map((tag, index) => (
+              <span key={index} className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <FaTag className="mr-1 inline-block" /> {tag}
               </span>
-            )}
+            ))}
           </div>
         </div>
         <div className="flex space-x-2">
@@ -185,7 +177,7 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
     status: 'To Do',
     dueDate: '',
     assignedTo: null,
-    type: 'Feature',
+    tags: [],
     timeTracking: {
       estimated: 0,
       spent: 0
@@ -193,10 +185,28 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [selectedTag, setSelectedTag] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddTag = () => {
+    if (selectedTag && !formData.tags.includes(selectedTag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, selectedTag]
+      }));
+      setSelectedTag('');
+    }
+  };
+
+  const handleRemoveTag = (tag) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
   };
 
   const handleTimeTrackingChange = (e) => {
@@ -321,21 +331,56 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Task Type</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Feature">Feature</option>
-                <option value="Bug">Bug</option>
-                <option value="Documentation">Documentation</option>
-                <option value="Research">Research</option>
-                <option value="Design">Design</option>
-                <option value="Testing">Testing</option>
-                <option value="Maintenance">Maintenance</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Tags</label>
+              <div className="flex">
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select a tag</option>
+                  <option value="Frontend">Frontend</option>
+                  <option value="Backend">Backend</option>
+                  <option value="UI/UX">UI/UX</option>
+                  <option value="Database">Database</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Testing">Testing</option>
+                  <option value="Documentation">Documentation</option>
+                  <option value="Research">Research</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-lg transition-colors"
+                >
+                  <FaPlus />
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {formData.tags.length > 0 ? (
+                  formData.tags.map((tag, index) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center bg-blue-600/30 text-blue-400 px-3 py-1 rounded-full text-sm"
+                    >
+                      <FaTag className="mr-1 text-xs" />
+                      {tag}
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-2 text-blue-400 hover:text-blue-300"
+                      >
+                        <FaTrash size={10} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-full p-3 text-center text-gray-400 bg-gray-700/50 rounded-lg border border-gray-600">
+                    No tags added
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

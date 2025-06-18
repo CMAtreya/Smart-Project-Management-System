@@ -107,6 +107,11 @@ const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
             <span className={`text-xs px-2 py-1 rounded-full bg-${statusColors[project.status].split('-')[1]}-500/20 text-${statusColors[project.status].split('-')[1]}-400 border border-${statusColors[project.status].split('-')[1]}-500/30`}>
               {project.status}
             </span>
+            {project.taskType && (
+              <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                {project.taskType}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex space-x-2">
@@ -196,7 +201,7 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
     status: 'Not Started',
     progress: 0,
     teamMembers: [],
-    tags: []
+    taskType: 'Feature'
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -210,29 +215,11 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
     { id: 'user7', name: 'Robert Wilson', role: 'Backend Developer' },
     { id: 'user8', name: 'Lisa Taylor', role: 'Frontend Developer' }
   ]);
-  const [selectedTag, setSelectedTag] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddTag = () => {
-    if (selectedTag && !formData.tags.includes(selectedTag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, selectedTag]
-      }));
-      setSelectedTag('');
-    }
-  };
-
-  const handleRemoveTag = (tag) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }));
   };
 
   const handleAddTeamMember = (user) => {
@@ -382,11 +369,6 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
                   onChange={handleChange}
                   className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
               </div>
             </div>
 
@@ -463,56 +445,21 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Tags</label>
-                <div className="flex">
-                  <select
-                    value={selectedTag}
-                    onChange={(e) => setSelectedTag(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select a tag</option>
-                    <option value="Frontend">Frontend</option>
-                    <option value="Backend">Backend</option>
-                    <option value="UI/UX">UI/UX</option>
-                    <option value="Database">Database</option>
-                    <option value="DevOps">DevOps</option>
-                    <option value="Testing">Testing</option>
-                    <option value="Documentation">Documentation</option>
-                    <option value="Research">Research</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={handleAddTag}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-lg transition-colors"
-                  >
-                    <FaPlus />
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.tags.length > 0 ? (
-                    formData.tags.map((tag, index) => (
-                      <div 
-                        key={index} 
-                        className="flex items-center bg-blue-600/30 text-blue-400 px-3 py-1 rounded-full text-sm"
-                      >
-                        <FaTag className="mr-1 text-xs" />
-                        {tag}
-                        <button 
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="ml-2 text-blue-400 hover:text-blue-300"
-                        >
-                          <FaTrash size={10} />
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="w-full p-3 text-center text-gray-400 bg-gray-700/50 rounded-lg border border-gray-600">
-                      No tags added
-                    </div>
-                  )}
-                </div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Task Type</label>
+                <select
+                  name="taskType"
+                  value={formData.taskType || 'Feature'}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Feature">Feature</option>
+                  <option value="Bug">Bug</option>
+                  <option value="Documentation">Documentation</option>
+                  <option value="Research">Research</option>
+                  <option value="Design">Design</option>
+                  <option value="Testing">Testing</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
               </div>
             </div>
           </div>
@@ -583,7 +530,7 @@ function Projects() {
             { id: 'user2', name: 'Jane Smith', role: 'Designer' },
             { id: 'user6', name: 'Emily Davis', role: 'UI/UX Designer' }
           ],
-          tags: ['Frontend', 'UI/UX', 'Design']
+          taskType: 'Design'
         },
         {
           id: 2,
@@ -600,7 +547,7 @@ function Projects() {
             { id: 'user8', name: 'Lisa Taylor', role: 'Frontend Developer' },
             { id: 'user4', name: 'Sarah Williams', role: 'QA Engineer' }
           ],
-          tags: ['Mobile', 'Frontend', 'Backend', 'API']
+          taskType: 'Feature'
         },
         {
           id: 3,
