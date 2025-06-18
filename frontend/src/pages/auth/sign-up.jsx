@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
 
+import { useAuth } from '../../contexts/AuthContext'; 
+// Ensure this is imported
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
   "Teamwork divides the task and multiplies the success.",
@@ -31,6 +38,7 @@ const LinkedinIcon = () => (
 );
 
 function SignUp() {
+    const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,6 +53,7 @@ function SignUp() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,6 +62,10 @@ function SignUp() {
     return () => clearInterval(interval);
   }, []);
 
+  const handlesignin = () =>{
+    navigate('/signin');
+   
+  } 
   const handleFlip = () => {
     setIsFlipping(true);
     setTimeout(() => {
@@ -124,40 +137,47 @@ function SignUp() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    
-    // Set loading state and clear previous errors
-    setIsSubmitting(true);
-    setServerError("");
-    
-    try {
-      // Validate form
-      if (!validateForm()) {
-        console.error("Validation errors:", errors);
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Prepare registration data
-      const registrationData = isAdminMode 
-        ? { ...formData, adminSecretKey }
-        : formData;
+ 
 
-      console.log(`${isAdminMode ? 'Admin' : 'User'} registration attempt:`, registrationData);
-      
-      // Simulate API call
-      setTimeout(() => {
-        setServerError(`${isAdminMode ? 'Admin' : 'User'} registration successful! Redirecting to sign in...`);
-        setIsSubmitting(false);
-      }, 1000);
-      
-    } catch (error) {
-      console.error("Error during registration:", error);
-      setServerError("Registration failed. Please try again.");
+const handleSignUp = async (e) => {
+  e.preventDefault();
+
+  setIsSubmitting(true);
+  setServerError("");
+
+  try {
+    // Validate form inputs
+    if (!validateForm()) {
+      console.error("Validation errors:", errors);
       setIsSubmitting(false);
+      return;
     }
-  };
+
+    // Combine form data with admin secret key if admin mode
+    const registrationData = {
+      ...formData,
+      role: isAdminMode ? 'admin' : 'user',
+      ...(isAdminMode && { adminSecretKey })
+    };
+
+    console.log(`${isAdminMode ? 'Admin' : 'User'} registration attempt:`, registrationData);
+
+    // 🔗 Call register from AuthContext
+    await register(registrationData);
+
+    // ✅ After successful registration, redirect to Sign-In page
+    toast.success(`${isAdminMode ? 'Admin' : 'User'} registration successful! Please sign in.`);
+    navigate('/signin'); // Replace with your actual sign-in route
+
+    setIsSubmitting(false);
+  } catch (error) {
+    console.error("Error during registration:", error);
+    const msg = error.response?.data?.message || "Registration failed. Please try again.";
+    setServerError(msg);
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
@@ -349,7 +369,7 @@ function SignUp() {
             <div className="mt-6 text-center">
               <p className="text-gray-400">
                 Already have an account?{" "}
-                <button className="text-blue-400 hover:underline">
+                <button className="text-blue-400 hover:underline" onClick={handlesignin}>
                   Sign In
                 </button>
               </p>

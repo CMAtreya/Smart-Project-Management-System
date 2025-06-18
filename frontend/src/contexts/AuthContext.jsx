@@ -2,8 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
+// Create context
 const AuthContext = createContext(null);
 
+// Hook to use AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -12,16 +14,17 @@ export const useAuth = () => {
   return context;
 };
 
+// Provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Initialize axios defaults
+  // Axios default config
   axios.defaults.baseURL = import.meta.env.VITE_API_URL;
   axios.defaults.withCredentials = true;
 
-  // Add request interceptor to include token
+  // Inject token into headers
   axios.interceptors.request.use(
     (config) => {
       const token = localStorage.getItem('token');
@@ -30,15 +33,13 @@ export const AuthProvider = ({ children }) => {
       }
       return config;
     },
-    (error) => {
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 
-  // Add response interceptor to handle token expiration
+  // Handle 401 responses globally
   axios.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    (error) => {
       if (error.response?.status === 401) {
         logout();
       }
@@ -50,85 +51,68 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  // Check login status
   const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        // For development purposes, create a mock user if no token exists
-        // This allows the UI to work without a backend
-        const mockUser = {
-          id: 'dev-user-1',
-          name: 'Development User',
-          email: 'dev@example.com',
-          role: 'admin'
-        };
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        setLoading(false);
-        return;
-      }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const response = await axios.get('/api/auth/me');
-        setUser(response.data);
-        setIsAuthenticated(true);
-      } catch (apiError) {
-        console.error('API call failed:', apiError);
-        // If API call fails, still use mock user for development
-        const mockUser = {
-          id: 'dev-user-1',
-          name: 'Development User',
-          email: 'dev@example.com',
-          role: 'admin'
-        };
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        console.log('Using mock user for development');
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    try {
+      const res = await axios.get('/auth/me');
+      setUser(res.data.user);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Auth check failed:', err);
       localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (email, password,role) => {
+  // ✅ LOGIN
+  const login = async ({ email, password, role }) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password,role });
-      const { token, user } = response.data;
-      
+      const res = await axios.post('/auth/login', { email, password, role });
+      const { token, user } = res.data;
+      console.log("Login API response:", res.data);
+
       localStorage.setItem('token', token);
       setUser(user);
       setIsAuthenticated(true);
-      
+
       toast.success('Login successful!');
       return user;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
-      throw error;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Login failed';
+      toast.error(msg);
+      throw err;
     }
   };
 
+  // ✅ REGISTER
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
-      const { token, user } = response.data;
-      
+      const res = await axios.post('/auth/register', userData);
+      const { token, user } = res.data;
+
       localStorage.setItem('token', token);
       setUser(user);
       setIsAuthenticated(true);
-      
+
       toast.success('Registration successful!');
       return user;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
-      toast.error(message);
-      throw error;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Registration failed';
+      toast.error(msg);
+      throw err;
     }
   };
 
+  // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -136,23 +120,25 @@ export const AuthProvider = ({ children }) => {
     toast.info('Logged out successfully');
   };
 
+  // ✅ UPDATE PROFILE
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put('/api/auth/profile', userData);
-      setUser(response.data);
-      toast.success('Profile updated successfully!');
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Profile update failed';
-      toast.error(message);
-      throw error;
+      const res = await axios.put('/api/auth/profile', userData);
+      setUser(res.data);
+      toast.success('Profile updated!');
+      return res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Update failed';
+      toast.error(msg);
+      throw err;
     }
   };
 
+  // Provide context value
   const value = {
     user,
-    loading,
     isAuthenticated,
+    loading,
     login,
     register,
     logout,
@@ -160,7 +146,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading authentication...</div>;
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

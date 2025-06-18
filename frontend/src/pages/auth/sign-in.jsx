@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../../contexts/AuthContext';
+
+ // ✅ Correct way to access login
 
 
+import axios from 'axios'
 
 const quotes = [
   "Efficiency is doing things right; effectiveness is doing the right things.",
@@ -18,6 +25,8 @@ export default function SignIn() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
+  const navigate = useNavigate();   
+const { login } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -38,35 +47,34 @@ export default function SignIn() {
     }, 300);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const errs = {};
-    
-    if (!email.trim()) errs.email = "Email is required";
-    if (!/\S+@\S+\.\S+/.test(email)) errs.email = "Invalid email format";
-    if (!password.trim()) errs.password = "Password is required";
-    
-    if (isAdminMode && !adminSecretKey.trim()) {
-      errs.adminSecretKey = "Admin secret key is required";
-    }
-
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
-    }
-
-    // Simulate API call
-    const loginData = isAdminMode 
-      ? { email, password, adminSecretKey }
-      : { email, password };
-       
-    console.log(`${isAdminMode ? 'Admin' : 'User'} login attempt:`, loginData);
-    
-    // Simulate successful login
-    setTimeout(() => {
-      setErrors({ api: `${isAdminMode ? 'Admin' : 'User'} login successful! Redirecting...` });
-    }, 1000);
+ const handleSignupClick = () => {
+    navigate('/signup');
   };
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault(); // prevent page reload!
+
+  const role = isAdminMode ? 'admin' : 'user';
+  const loginData = { email, password, role };
+
+  console.log("Sending:", loginData);
+
+  try {
+    const loggedInUser = await login(loginData);
+    console.log("User logged in:", loggedInUser);
+
+    if (loggedInUser.role === 'admin') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/user/dashboard');
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || "Login failed";
+    setErrors({ api: msg });
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6">
@@ -199,9 +207,12 @@ export default function SignIn() {
 
             </div><br/>
             Don't have an account?{" "}
-            <button className="text-blue-400 hover:underline bg-transparent border-none cursor-pointer">
-              Sign Up
-            </button>
+               <button
+      className="text-blue-400 hover:underline bg-transparent border-none cursor-pointer"
+      onClick={handleSignupClick}
+    >
+      Sign Up
+    </button>
           </div>
         </div>
       </div>
