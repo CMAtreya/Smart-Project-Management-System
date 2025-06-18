@@ -775,6 +775,7 @@ function Projects() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e1e1e] to-[#121212] text-white transition-colors duration-300">
+      <Navbar />
       <AnimatePresence mode="wait">
         {loading ? (
           <motion.div

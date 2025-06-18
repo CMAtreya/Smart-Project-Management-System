@@ -25,15 +25,27 @@ const Navbar = () => {
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
 
-  const navLinks = 
-     [
-        { name: "Dashboard", path: "/user/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
-        { name: "Projects", path: "/user/finishedproject", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
-        { name: "Tasks", path: "/user/TasksPage", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
-        { name: "Calendar", path: "/user/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
-        { name: "Analytics", path: "/user/charts", icon: <HiOutlineChartBar className="w-5 h-5" /> },
-        { name: "Chat", path: "/user/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
-      ];
+  // Determine which navigation links to show based on the current path
+  const isAdminPath = location.pathname.includes('/admin');
+  
+  const adminNavLinks = [
+    { name: "Dashboard", path: "/admin/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
+    { name: "Projects", path: "/admin/projects", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
+    { name: "Calendar", path: "/admin/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
+    { name: "Analytics", path: "/admin/analytics", icon: <HiOutlineChartBar className="w-5 h-5" /> },
+    { name: "Chat", path: "/admin/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
+  ];
+  
+  const userNavLinks = [
+    { name: "Dashboard", path: "/user/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
+    { name: "Projects", path: "/user/finishedproject", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
+    { name: "Tasks", path: "/user/TasksPage", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
+    { name: "Calendar", path: "/user/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
+    { name: "Analytics", path: "/user/charts", icon: <HiOutlineChartBar className="w-5 h-5" /> },
+    { name: "Chat", path: "/user/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
+  ];
+  
+  const navLinks = isAdminPath ? adminNavLinks : userNavLinks;
 
   const notifications = [
     {
