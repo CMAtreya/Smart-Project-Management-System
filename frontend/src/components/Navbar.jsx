@@ -219,7 +219,7 @@ const Navbar = () => {
                     </div>
                     <div className="p-2">
                       <Link
-                        to="/user/profile"
+                        to={isAdminPath ? "/admin/profile" : "/user/profile"}
                         className="block px-4 py-2 text-sm text-apple-700 hover:bg-apple-50 rounded"
                       >
                         View Profile

@@ -47,15 +47,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
     'Blocked': 'bg-red-500/20 text-red-400 border-red-500/30'
   };
 
-  const typeIcons = {
-    'Feature': <FaLightbulb className="mr-1" />,
-    'Bug': <FaExclamation className="mr-1" />,
-    'Documentation': <FaFileAlt className="mr-1" />,
-    'Research': <FaSearch className="mr-1" />,
-    'Design': <FaPencilAlt className="mr-1" />,
-    'Testing': <FaClipboardList className="mr-1" />,
-    'Maintenance': <FaUserCog className="mr-1" />
-  };
+
 
   // Calculate days remaining
   const calculateDaysRemaining = (dueDate) => {
@@ -91,11 +83,11 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
                <FaRegClock className="mr-1 inline-block" />} 
               {task.status}
             </span>
-            {task.type && (
-              <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                {typeIcons[task.type]} {task.type}
+            {task.tags && task.tags.length > 0 && task.tags.map((tag, index) => (
+              <span key={index} className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <FaTag className="mr-1 inline-block" /> {tag}
               </span>
-            )}
+            ))}
           </div>
         </div>
         <div className="flex space-x-2">
@@ -185,7 +177,7 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
     status: 'To Do',
     dueDate: '',
     assignedTo: null,
-    type: 'Feature',
+    tags: [],
     timeTracking: {
       estimated: 0,
       spent: 0
@@ -193,10 +185,28 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [selectedTag, setSelectedTag] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddTag = () => {
+    if (selectedTag && !formData.tags.includes(selectedTag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, selectedTag]
+      }));
+      setSelectedTag('');
+    }
+  };
+
+  const handleRemoveTag = (tag) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
   };
 
   const handleTimeTrackingChange = (e) => {
@@ -321,21 +331,56 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Task Type</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Feature">Feature</option>
-                <option value="Bug">Bug</option>
-                <option value="Documentation">Documentation</option>
-                <option value="Research">Research</option>
-                <option value="Design">Design</option>
-                <option value="Testing">Testing</option>
-                <option value="Maintenance">Maintenance</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Tags</label>
+              <div className="flex">
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select a tag</option>
+                  <option value="Frontend">Frontend</option>
+                  <option value="Backend">Backend</option>
+                  <option value="UI/UX">UI/UX</option>
+                  <option value="Database">Database</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Testing">Testing</option>
+                  <option value="Documentation">Documentation</option>
+                  <option value="Research">Research</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-lg transition-colors"
+                >
+                  <FaPlus />
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {formData.tags.length > 0 ? (
+                  formData.tags.map((tag, index) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center bg-blue-600/30 text-blue-400 px-3 py-1 rounded-full text-sm"
+                    >
+                      <FaTag className="mr-1 text-xs" />
+                      {tag}
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-2 text-blue-400 hover:text-blue-300"
+                      >
+                        <FaTrash size={10} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-full p-3 text-center text-gray-400 bg-gray-700/50 rounded-lg border border-gray-600">
+                    No tags added
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1174,81 +1219,204 @@ function Tasks() {
               </div>
             )}
 
-            {/* Kanban Tab Content */}
+            {/* Kanban Board Tab Content */}
             {activeTab === 'kanban' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
-                {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
-                  <div key={status} className="min-w-[250px]">
-                    <div className="bg-gray-800 rounded-t-xl p-3 border border-gray-700 border-b-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-white flex items-center">
-                          {status === 'To Do' && <FaRegClock className="mr-2 text-gray-400" />}
-                          {status === 'In Progress' && <FaCircleNotch className="mr-2 text-blue-400" />}
-                          {status === 'In Review' && <FaSearch className="mr-2 text-yellow-400" />}
-                          {status === 'Completed' && <FaCheckCircle className="mr-2 text-green-400" />}
-                          {status === 'Blocked' && <FaExclamationCircle className="mr-2 text-red-400" />}
-                          {status}
-                        </h3>
-                        <span className="bg-gray-700 text-xs font-medium px-2 py-1 rounded-full">
-                          {statusTasks.length}
-                        </span>
-                      </div>
+              <div className="mb-6">
+                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center">
+                      <FaClipboard className="mr-2 text-blue-500" /> Kanban Board
+                    </h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleCreateTask}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center text-sm transition-colors"
+                      >
+                        <FaPlus className="mr-1" /> Add Task
+                      </button>
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="px-3 py-1 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="All">All Statuses</option>
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="In Review">In Review</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Blocked">Blocked</option>
+                      </select>
                     </div>
-                    
-                    <div className="bg-gray-800/50 rounded-b-xl p-3 border border-gray-700 border-t-0 min-h-[300px]">
-                      {statusTasks.length > 0 ? (
-                        <div className="space-y-3">
-                          {statusTasks.map(task => (
-                            <motion.div
-                              key={task.id}
-                              whileHover={{ y: -2 }}
-                              className="bg-gray-800 p-3 rounded-lg border border-gray-700 cursor-pointer"
-                              onClick={() => handleEditTask(task)}
-                            >
-                              <h4 className="font-medium text-white text-sm mb-2 line-clamp-2">{task.title}</h4>
-                              
-                              <div className="flex items-center justify-between mb-2">
-                                <span className={`text-xs px-2 py-1 rounded-full border ${priorityColors[task.priority]}`}>
-                                  {task.priority}
-                                </span>
-                                
-                                <div className="flex items-center">
-                                  <FaCalendarDay className="text-gray-400 mr-1 text-xs" />
-                                  <span className="text-xs text-gray-400">
-                                    {new Date(task.dueDate).toLocaleDateString()}
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <FaInfoCircle className="inline-block mr-1 text-blue-400" /> 
+                    Drag and drop tasks between columns to update their status. Click on a task to edit its details.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-6">
+                  {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
+                    <div key={status} className="min-w-[280px]">
+                      <div className={`rounded-t-xl p-3 border border-b-0 ${status === 'To Do' ? 'bg-gray-800 border-gray-700' : 
+                                                                              status === 'In Progress' ? 'bg-blue-900/30 border-blue-800/50' : 
+                                                                              status === 'In Review' ? 'bg-yellow-900/30 border-yellow-800/50' : 
+                                                                              status === 'Completed' ? 'bg-green-900/30 border-green-800/50' : 
+                                                                              'bg-red-900/30 border-red-800/50'}`}>
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-white flex items-center">
+                            {status === 'To Do' && <FaRegClock className="mr-2 text-gray-400" />}
+                            {status === 'In Progress' && <FaCircleNotch className="mr-2 text-blue-400 animate-spin" />}
+                            {status === 'In Review' && <FaSearch className="mr-2 text-yellow-400" />}
+                            {status === 'Completed' && <FaCheckCircle className="mr-2 text-green-400" />}
+                            {status === 'Blocked' && <FaExclamationCircle className="mr-2 text-red-400" />}
+                            {status}
+                          </h3>
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${status === 'To Do' ? 'bg-gray-700' : 
+                                                                                        status === 'In Progress' ? 'bg-blue-800/70' : 
+                                                                                        status === 'In Review' ? 'bg-yellow-800/70' : 
+                                                                                        status === 'Completed' ? 'bg-green-800/70' : 
+                                                                                        'bg-red-800/70'}`}>
+                            {statusTasks.length}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className={`rounded-b-xl p-3 border border-t-0 min-h-[500px] ${status === 'To Do' ? 'bg-gray-800/50 border-gray-700' : 
+                                                                                        status === 'In Progress' ? 'bg-blue-900/10 border-blue-800/50' : 
+                                                                                        status === 'In Review' ? 'bg-yellow-900/10 border-yellow-800/50' : 
+                                                                                        status === 'Completed' ? 'bg-green-900/10 border-green-800/50' : 
+                                                                                        'bg-red-900/10 border-red-800/50'}`}
+                           onDragOver={(e) => {
+                             e.preventDefault();
+                             e.currentTarget.classList.add('bg-opacity-70');
+                           }}
+                           onDragLeave={(e) => {
+                             e.currentTarget.classList.remove('bg-opacity-70');
+                           }}
+                           onDrop={(e) => {
+                             e.preventDefault();
+                             e.currentTarget.classList.remove('bg-opacity-70');
+                             const taskId = e.dataTransfer.getData('taskId');
+                             handleStatusChange(parseInt(taskId), status);
+                           }}
+                      >
+                        {statusTasks.length > 0 ? (
+                          <div className="space-y-3">
+                            {statusTasks.map(task => (
+                              <motion.div
+                                key={task.id}
+                                layoutId={`task-${task.id}`}
+                                whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)' }}
+                                className={`p-4 rounded-lg cursor-pointer shadow-md ${status === 'To Do' ? 'bg-gray-800 border-l-4 border-gray-500' : 
+                                                                                    status === 'In Progress' ? 'bg-gray-800 border-l-4 border-blue-500' : 
+                                                                                    status === 'In Review' ? 'bg-gray-800 border-l-4 border-yellow-500' : 
+                                                                                    status === 'Completed' ? 'bg-gray-800 border-l-4 border-green-500' : 
+                                                                                    'bg-gray-800 border-l-4 border-red-500'}`}
+                                onClick={() => handleEditTask(task)}
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('taskId', task.id.toString());
+                                }}
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium text-white text-sm line-clamp-2">{task.title}</h4>
+                                  <span className={`text-xs px-2 py-1 rounded-full border ${priorityColors[task.priority]}`}>
+                                    {task.priority}
                                   </span>
                                 </div>
-                              </div>
-                              
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white">
-                                    {task.assignedTo.name.charAt(0)}
+                                
+                                <p className="text-xs text-gray-400 mb-3 line-clamp-2">{task.description}</p>
+                                
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center">
+                                    <FaCalendarDay className="text-gray-400 mr-1 text-xs" />
+                                    <span className="text-xs text-gray-400">
+                                      {new Date(task.dueDate).toLocaleDateString()}
+                                    </span>
                                   </div>
-                                  <span className="text-xs text-gray-400 ml-1">{task.assignedTo.name.split(' ')[0]}</span>
+                                  
+                                  {task.tags && task.tags.length > 0 && (
+                                    <div className="flex items-center">
+                                      <FaTag className="text-gray-400 mr-1 text-xs" />
+                                      <span className="text-xs text-gray-400">{task.tags[0]}{task.tags.length > 1 ? ` +${task.tags.length - 1}` : ''}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white">
+                                      {task.assignedTo.name.charAt(0)}
+                                    </div>
+                                    <span className="text-xs text-gray-400 ml-1">{task.assignedTo.name.split(' ')[0]}</span>
+                                  </div>
+                                  
+                                  {task.timeTracking && (
+                                    <div className="flex items-center">
+                                      <FaClock className="text-gray-400 mr-1 text-xs" />
+                                      <span className="text-xs text-gray-400">
+                                        {task.timeTracking.spent}/{task.timeTracking.estimated}h
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                                 
                                 {task.timeTracking && (
-                                  <div className="flex items-center">
-                                    <FaClock className="text-gray-400 mr-1 text-xs" />
-                                    <span className="text-xs text-gray-400">
-                                      {task.timeTracking.spent}/{task.timeTracking.estimated}h
-                                    </span>
+                                  <div className="mt-2 w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full rounded-full ${task.priority === 'Urgent' ? 'bg-red-500' : 
+                                                                        task.priority === 'High' ? 'bg-orange-500' : 
+                                                                        task.priority === 'Medium' ? 'bg-yellow-500' : 
+                                                                        'bg-green-500'}`}
+                                      style={{ width: `${Math.min(100, (task.timeTracking.spent / task.timeTracking.estimated) * 100)}%` }}
+                                    ></div>
                                   </div>
                                 )}
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                          <FaClipboardList className="text-gray-600 text-3xl mb-2" />
-                          <p className="text-gray-500 text-sm">No tasks</p>
-                        </div>
-                      )}
+                              </motion.div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                            <FaClipboardList className="text-gray-600 text-3xl mb-2" />
+                            <p className="text-gray-500 text-sm">No tasks</p>
+                            <button 
+                              onClick={handleCreateTask}
+                              className="mt-4 px-3 py-1 bg-blue-600/50 hover:bg-blue-500 rounded-lg text-xs transition-colors"
+                            >
+                              <FaPlus className="mr-1 inline-block" /> Add Task
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <FaLightbulb className="mr-2 text-yellow-400" /> Task Management Tips
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-700">
+                      <h4 className="text-sm font-medium text-white mb-2 flex items-center">
+                        <FaRegClock className="mr-2 text-blue-400" /> Time Management
+                      </h4>
+                      <p className="text-xs text-gray-400">Break down large tasks into smaller, manageable chunks. Estimate time accurately and track progress regularly.</p>
+                    </div>
+                    <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-700">
+                      <h4 className="text-sm font-medium text-white mb-2 flex items-center">
+                        <FaExclamationCircle className="mr-2 text-red-400" /> Blockers
+                      </h4>
+                      <p className="text-xs text-gray-400">Identify and communicate blockers early. Don't let tasks stay blocked for too long without attention.</p>
+                    </div>
+                    <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-700">
+                      <h4 className="text-sm font-medium text-white mb-2 flex items-center">
+                        <FaUsers className="mr-2 text-green-400" /> Collaboration
+                      </h4>
+                      <p className="text-xs text-gray-400">Maintain clear communication with team members. Update task status regularly to keep everyone informed.</p>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             )}
 

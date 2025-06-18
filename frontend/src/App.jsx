@@ -1,19 +1,22 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Suspense, lazy } from 'react';
 
 // Auth Pages
 import Mainpage from './pages/auth/mainpage';
 import SignUp from './pages/auth/sign-up';
 import SignIn from './pages/auth/sign-in';
-// Admin pages
-import Admindashboard from './pages/admin/admindashboard';
-import Analytics from './pages/admin/analytics';
-import Projects from './pages/admin/projects';
-import CAlendar from './pages/admin/calendar';
-import Tasks from './pages/admin/tasks';
-import ChatPage from './pages/admin/chatpage';
 
+// Admin Pages
+import Admindashboard from './pages/admin/admindashboard';
+import Navbar from './components/Navbar';
+import ChatPage from './pages/admin/chatpage';
+import Projects from './pages/admin/projects';
+import Tasks from './pages/admin/tasks';
+import CAlendar from './pages/admin/calendar';
+import Analytics from './pages/admin/analytics';
+import AdminProfile from './pages/admin/profile';
 
 // User Pages
 import UserChartPage from './pages/user/charts';
@@ -23,6 +26,7 @@ import AssignWork from './pages/user/assignwork';
 import FinishedProject from './pages/user/finishedproject';
 import Calendar from './pages/user/calendar';
 import TasksPage from './pages/user/TasksPage';
+import UserProfile from './pages/user/profile';
 
 // Admin Layout Component
 const AdminLayout = () => {
@@ -53,6 +57,7 @@ export default function App() {
           <Route path="/admin/tasks" element={<Tasks />} />
           <Route path="/admin/calendar" element={<CAlendar />} />
           <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
         </Route>
 
         {/* User Routes */}
@@ -63,6 +68,7 @@ export default function App() {
         <Route path="/user/finishedproject" element={<FinishedProject />} />
         <Route path="/user/calendar" element={<Calendar />} />
         <Route path="/user/TasksPage" element={<TasksPage />} />
+        <Route path="/user/profile" element={<UserProfile />} />
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
