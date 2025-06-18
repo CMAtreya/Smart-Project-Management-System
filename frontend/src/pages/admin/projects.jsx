@@ -7,7 +7,8 @@ import {
   FaRegClock, FaExclamationCircle, FaFilter, FaPlus, FaTrash, FaPencilAlt,
   FaSortAmountDown, FaSortAmountUp, FaClipboardList, FaUsers, FaProjectDiagram,
   FaUserPlus, FaEdit, FaEye, FaArrowRight, FaBuilding, FaUserTie, FaUserCog,
-  FaTag, FaCalendarCheck, FaCalendarDay, FaFlag, FaChevronDown, FaChevronUp
+  FaTag, FaCalendarCheck, FaCalendarDay, FaFlag, FaChevronDown, FaChevronUp,
+  FaUserFriends
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar';
@@ -121,6 +122,12 @@ const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
           >
             <FaEdit />
           </button>
+          <Link 
+            to="/admin/chatpage"
+            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-green-400 hover:text-green-300 transition-colors"
+          >
+            <FaUserFriends />
+          </Link>
           <button 
             onClick={() => onDelete(project.id)}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-red-400 hover:text-red-300 transition-colors"
@@ -645,6 +652,14 @@ function Projects() {
         createdAt: new Date().toISOString()
       };
       setProjects(prev => [...prev, newProject]);
+      
+      // Automatically create a team chat with the same name as the project
+      // In a real application, this would make an API call to create a chat team
+      console.log(`Created new team chat: ${projectData.title}`);
+      
+      // The chat team would include all team members from the project
+      const teamMembers = projectData.teamMembers.map(member => member.name).join(', ');
+      console.log(`Team members: ${teamMembers}`);
     }
     setIsModalOpen(false);
   };

@@ -717,7 +717,7 @@ function Admindashboard() {
                     <span className="text-sm font-medium text-white">Detailed Analytics</span>
                   </Link>
                   
-                  <Link to="/admin/settings" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
+                  <Link to="/admin/profile" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
                     <div className="bg-yellow-900/30 p-3 rounded-full mb-3 group-hover:bg-yellow-900/50 transition-colors duration-200">
                       <FaCog className="text-yellow-400 text-xl" />
                     </div>
