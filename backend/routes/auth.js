@@ -3,27 +3,30 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Environment variables should be set in a .env file
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_LIFETIME = process.env.JWT_LIFETIME || '30d';
 
-// Register a new user
+// REGISTER
 router.post('/register', async (req, res) => {
   try {
+    console.log('Request Body:', req.body);
+
     const { name, email, password, role } = req.body;
- console.log(name,email,password ,role);
-    // Check if user already exists
+; // <-- FIXED
+
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user
-    const user = await User.create({ name, email, password ,role });
-    
-    // Generate JWT token
+    const user = await User.create({ name, email, password, role });
+
     const token = jwt.sign(
-      { userId: user._id, name: user.name },
+      { userId: user._id, name: user.name, role: user.role },
       JWT_SECRET,
       { expiresIn: JWT_LIFETIME }
     );
@@ -33,7 +36,7 @@ router.post('/register', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-      
+        role: user.role
       },
       token
     });
@@ -42,32 +45,25 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Something went wrong', error: error.message });
   }
 });
-
-// Login user
+// LOGIN
 router.post('/login', async (req, res) => {
   try {
-    const { email, password , role } = req.body;
+  
+    const { email, password, role } = req.body || {};
+if (!email || !password || !role) {
+  return res.status(400).json({ message: 'All fields are required' });
+}
 
-    // Check if user exists
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Check password
     const isPasswordCorrect = await user.comparePassword(password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!isPasswordCorrect) return res.status(401).json({ message: 'Invalid credentials' });
 
-      
-    }
-    const userrole = await user.findOne({role});
-    if(req.body.role != userrole){
-      return res.status(401).json({ message : ' role doesnot match'});
+    if (user.role !== role) {
+      return res.status(403).json({ message: 'Role mismatch. Access denied.' });
     }
 
-
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, name: user.name, role: user.role },
       JWT_SECRET,
@@ -89,24 +85,22 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current user
+// GET CURRENT USER
 router.get('/me', async (req, res) => {
   try {
-    // This route should be protected with authentication middleware
-    // For now, we'll extract the token manually
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Authentication invalid' });
     }
-    
+
     const token = authHeader.split(' ')[1];
     const payload = jwt.verify(token, JWT_SECRET);
-    
+
     const user = await User.findById(payload.userId).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.status(200).json({ user });
   } catch (error) {
     console.error('Get user error:', error);
