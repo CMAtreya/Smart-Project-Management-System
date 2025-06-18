@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { login } from './../../contexts/AuthContext'
+
 
 
 const quotes = [
