@@ -10,6 +10,7 @@ import Admindashboard from './pages/admin/admindashboard';
 import Analytics from './pages/admin/analytics';
 import Projects from './pages/admin/projects';
 import CAlendar from './pages/admin/calendar';
+import Tasks from './pages/admin/tasks';
 import ChatPage from './pages/user/chatpage';
 
 
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/admin/dashboard" element = { < Admindashboard  />} />
         <Route path="/admin/chat" element = { <ChatPage />} />
         <Route path="/admin/projects" element = { <Projects />} />
+        <Route path="/admin/tasks" element = { <Tasks />} />
         <Route path="/admin/calendar" element = { <CAlendar />} />
         <Route path="/admin/analytics" element = { < Analytics/>} />
 
