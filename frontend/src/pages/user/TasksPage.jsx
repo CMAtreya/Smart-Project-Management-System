@@ -5,7 +5,8 @@ import {
   FaTasks, FaChartBar, FaCalendarAlt, FaUser, FaSignOutAlt, 
   FaBell, FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
   FaRegClock, FaExclamationCircle, FaFilter, FaPlus, FaTrash, FaPencilAlt,
-  FaSortAmountDown, FaSortAmountUp, FaClipboardList
+  FaSortAmountDown, FaSortAmountUp, FaClipboardList, FaArrowLeft, FaEye,
+  FaProjectDiagram, FaUsers
 } from 'react-icons/fa';
 import { 
   HiOutlineClipboardCheck, HiOutlineCheckCircle, HiOutlineClock,
@@ -540,7 +541,8 @@ function TasksPage() {
       status: "In Progress",
       dueDate: "May 25",
       assignedTo: ["John", "Sarah"],
-      type: "personal"
+      type: "personal",
+      projectId: 1
     },
     {
       id: 2,
@@ -550,7 +552,8 @@ function TasksPage() {
       status: "To Do",
       dueDate: "May 30",
       assignedTo: ["Mike"],
-      type: "personal"
+      type: "personal",
+      projectId: 1
     },
     {
       id: 3,
@@ -560,7 +563,8 @@ function TasksPage() {
       status: "Completed",
       dueDate: "May 20",
       assignedTo: ["Emma"],
-      type: "personal"
+      type: "personal",
+      projectId: 1
     },
     {
       id: 4,
@@ -570,7 +574,8 @@ function TasksPage() {
       status: "To Do",
       dueDate: "June 5",
       assignedTo: ["David", "Lisa"],
-      type: "assigned"
+      type: "assigned",
+      projectId: 2
     },
     {
       id: 5,
@@ -580,7 +585,8 @@ function TasksPage() {
       status: "In Progress",
       dueDate: "June 2",
       assignedTo: ["Alex"],
-      type: "assigned"
+      type: "assigned",
+      projectId: 2
     },
     {
       id: 6,
@@ -590,7 +596,8 @@ function TasksPage() {
       status: "To Do",
       dueDate: "June 10",
       assignedTo: ["Sarah"],
-      type: "personal"
+      type: "personal",
+      projectId: 3
     },
     {
       id: 7,
@@ -598,6 +605,7 @@ function TasksPage() {
       description: "Conduct thorough code review for quality assurance",
       priority: "High",
       status: "Pending",
+      projectId: 4,
       dueDate: "June 8",
       assignedTo: ["John", "Mike"],
       type: "assigned"
@@ -621,7 +629,81 @@ function TasksPage() {
     return () => clearTimeout(timer);
   }, []);
   
-  // Check for state from navigation (e.g., from dashboard)
+  // State for current project ID and project details (when viewing project-specific tasks)
+  const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [projectDetails, setProjectDetails] = useState(null);
+
+  // Function to fetch project details by ID
+  const fetchProjectDetails = (projectId) => {
+    // In a real app, you would call an API to fetch project details
+    // For now, we'll use mock data
+    const mockProjects = [
+      {
+        id: 1,
+        title: 'E-commerce Website Redesign',
+        description: 'Redesign the company e-commerce website with modern UI/UX principles',
+        startDate: '2023-06-01',
+        endDate: '2023-07-15',
+        priority: 'High',
+        status: 'In Progress',
+        progress: 65,
+        teamMembers: [
+          { name: 'John Doe', role: 'Frontend Developer' },
+          { name: 'Jane Smith', role: 'UI/UX Designer' },
+          { name: 'Mike Johnson', role: 'Backend Developer' },
+          { name: 'Sarah Williams', role: 'Project Manager' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Mobile App Development',
+        description: 'Develop a new mobile app for customer engagement',
+        startDate: '2023-05-15',
+        endDate: '2023-08-30',
+        priority: 'Medium',
+        status: 'To Do',
+        progress: 15,
+        teamMembers: [
+          { name: 'John Doe', role: 'Frontend Developer' },
+          { name: 'Alex Brown', role: 'Mobile Developer' },
+          { name: 'Sarah Williams', role: 'Project Manager' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Marketing Campaign',
+        description: 'Plan and execute Q3 marketing campaign',
+        startDate: '2023-07-01',
+        endDate: '2023-09-30',
+        priority: 'Low',
+        status: 'Planning',
+        progress: 5,
+        teamMembers: [
+          { name: 'Lisa Brown', role: 'Marketing Specialist' },
+          { name: 'Sarah Williams', role: 'Project Manager' }
+        ]
+      },
+      {
+        id: 4,
+        title: 'CRM System Integration',
+        description: 'Integrate new CRM system with existing company infrastructure',
+        startDate: '2023-06-15',
+        endDate: '2023-08-15',
+        priority: 'Urgent',
+        status: 'In Progress',
+        progress: 25,
+        teamMembers: [
+          { name: 'Mike Johnson', role: 'Backend Developer' },
+          { name: 'Ryan Wilson', role: 'Backend Developer' },
+          { name: 'Sarah Williams', role: 'Project Manager' }
+        ]
+      }
+    ];
+    
+    return mockProjects.find(project => project.id === projectId);
+  };
+
+  // Check for state from navigation (e.g., from dashboard or projects page)
   useEffect(() => {
     if (location.state) {
       // If redirected from dashboard with openAddModal flag
@@ -642,10 +724,14 @@ function TasksPage() {
         }
       }
       
-      // If redirected from dashboard with openProjectDetails flag
+      // If redirected from projects page with openProjectDetails flag
       if (location.state.openProjectDetails) {
         const projectId = location.state.openProjectDetails;
-        // Find tasks related to this project and set appropriate filters
+        setCurrentProjectId(projectId);
+        // Fetch project details
+        const projectData = fetchProjectDetails(projectId);
+        setProjectDetails(projectData);
+        // Reset filters to show all tasks for this project
         setFilter(prev => ({ 
           ...prev, 
           type: 'all',
@@ -661,6 +747,9 @@ function TasksPage() {
 
   // Filter and sort tasks
   const filteredTasks = tasks.filter(task => {
+    // Filter by project ID if viewing a specific project
+    if (currentProjectId && task.projectId !== currentProjectId) return false;
+    // Apply other filters
     if (filter.type !== 'all' && task.type !== filter.type) return false;
     if (filter.status !== 'all' && task.status !== filter.status) return false;
     if (filter.priority !== 'all' && task.priority !== filter.priority) return false;
@@ -837,22 +926,189 @@ function TasksPage() {
                     <div className="bg-blue-900/30 p-2 rounded-lg mr-3">
                       <HiOutlineClipboardCheck className="text-blue-400 text-2xl" />
                     </div>
-                    Task Management
+                    {currentProjectId ? 'Project Tasks' : 'Task Management'}
                   </h1>
-                  <p className="text-gray-300 mt-2">Manage your personal and assigned tasks efficiently</p>
+                  <p className="text-gray-300 mt-2">
+                    {currentProjectId 
+                      ? `Viewing tasks for project #${currentProjectId}` 
+                      : 'Manage your personal and assigned tasks efficiently'}
+                  </p>
                 </div>
-                {/* Only show Add New Task button when filter is set to 'personal' or 'all' */}
-                {(filter.type === 'personal' || filter.type === 'all') && (
+                {/* Only show Add New Task button when filter is set to 'personal' or 'all' and not viewing project tasks */}
+                {!currentProjectId && (filter.type === 'personal' || filter.type === 'all') && (
                   <motion.button 
                     whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAddModal(true)}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center space-x-2 border border-blue-400/30"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center space-x-2 border border-blue-400/30"
                   >
                     <FaPlus className="mr-2" /> Add New Personal Task
                   </motion.button>
                 )}
+                
+                {/* Back to Projects button when viewing project tasks */}
+                {currentProjectId && (
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/user/projects')}
+                    className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 flex items-center space-x-2 border border-gray-600"
+                  >
+                    <FaArrowLeft className="mr-2" /> Back to Projects
+                  </motion.button>
+                )}
               </motion.div>
+              
+              {/* Project Details Card - Only shown when viewing project tasks */}
+              {currentProjectId && projectDetails && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="mb-8 dashboard-card rounded-xl p-6 relative overflow-hidden"
+                >
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Project Info */}
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-white mb-3 flex items-center">
+                        <div className="bg-blue-900/30 p-2 rounded-lg mr-3">
+                          <FaProjectDiagram className="text-blue-400 text-xl" />
+                        </div>
+                        {projectDetails.title}
+                      </h2>
+                      <p className="text-gray-300 mb-4">{projectDetails.description}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="bg-gray-800/50 p-3 rounded-lg">
+                          <p className="text-gray-400 text-sm">Status</p>
+                          <div className="flex items-center mt-1">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${projectDetails.status === 'Completed' ? 'bg-green-500' : projectDetails.status === 'In Progress' ? 'bg-blue-500' : 'bg-yellow-500'}`}></div>
+                            <p className="font-medium">{projectDetails.status}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-800/50 p-3 rounded-lg">
+                          <p className="text-gray-400 text-sm">Priority</p>
+                          <div className="flex items-center mt-1">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${projectDetails.priority === 'High' || projectDetails.priority === 'Urgent' ? 'bg-red-500' : projectDetails.priority === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+                            <p className="font-medium">{projectDetails.priority}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-800/50 p-3 rounded-lg">
+                          <p className="text-gray-400 text-sm">Timeline</p>
+                          <p className="font-medium mt-1">{new Date(projectDetails.startDate).toLocaleDateString()} - {new Date(projectDetails.endDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Project Team Members with Roles */}
+                      <div className="mt-6">
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                          <div className="bg-blue-900/30 p-2 rounded-lg mr-3">
+                            <FaUsers className="text-blue-400" />
+                          </div>
+                          Team Members
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {projectDetails.teamMembers.map((member, index) => (
+                            <div key={index} className="bg-gray-800/50 p-3 rounded-lg flex items-center">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center mr-3 text-white font-medium">
+                                {member.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-white">{member.name}</p>
+                                <p className="text-sm text-gray-400">{member.role}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Project Progress and Stats */}
+                    <div className="lg:w-1/3 flex flex-col justify-between space-y-6">
+                      <div className="bg-gray-800/50 p-4 rounded-lg">
+                        <h3 className="font-medium mb-3 flex items-center">
+                          <FaChartBar className="mr-2 text-blue-400" /> Project Progress
+                        </h3>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-400 text-sm">Completion</span>
+                          <span className="text-blue-400 font-bold">{projectDetails.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 h-2.5 rounded-full" 
+                            style={{ width: `${projectDetails.progress}%` }}
+                          ></div>
+                        </div>
+                        
+                        {/* Days Remaining */}
+                        <div className="mt-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-400 text-sm">Timeline</span>
+                            <span className="text-sm">
+                              {Math.ceil((new Date(projectDetails.endDate) - new Date()) / (1000 * 60 * 60 * 24))} days remaining
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <FaCalendarAlt className="text-gray-400 mr-2" />
+                            <span>
+                              {new Date(projectDetails.startDate).toLocaleDateString()} - {new Date(projectDetails.endDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Task Statistics */}
+                      <div className="bg-gray-800/50 p-4 rounded-lg">
+                        <h3 className="font-medium mb-3 flex items-center">
+                          <FaTasks className="mr-2 text-blue-400" /> Task Statistics
+                        </h3>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gray-700/50 p-3 rounded-lg text-center">
+                            <p className="text-xs text-gray-400">Total Tasks</p>
+                            <p className="text-xl font-semibold text-white">
+                              {filteredTasks.length}
+                            </p>
+                          </div>
+                          
+                          <div className="bg-gray-700/50 p-3 rounded-lg text-center">
+                            <p className="text-xs text-gray-400">Completed</p>
+                            <p className="text-xl font-semibold text-white">
+                              {filteredTasks.filter(task => task.status === 'Completed').length}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 pt-3 border-t border-gray-700">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>
+                              <span className="text-xs text-gray-400">To Do: {filteredTasks.filter(task => task.status === 'To Do').length}</span>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                              <span className="text-xs text-gray-400">In Progress: {filteredTasks.filter(task => task.status === 'In Progress').length}</span>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                              <span className="text-xs text-gray-400">Blocked: {filteredTasks.filter(task => task.status === 'Blocked').length}</span>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                              <span className="text-xs text-gray-400">Completed: {filteredTasks.filter(task => task.status === 'Completed').length}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
               
               {/* Filters */}
               <motion.div 

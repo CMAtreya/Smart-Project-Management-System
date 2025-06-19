@@ -38,8 +38,7 @@ const Navbar = () => {
   
   const userNavLinks = [
     { name: "Dashboard", path: "/user/dashboard", icon: <HiOutlineHome className="w-5 h-5" /> },
-    { name: "Projects", path: "/user/finishedproject", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
-    { name: "Tasks", path: "/user/TasksPage", icon: <HiOutlineClipboardCheck className="w-5 h-5" /> },
+    { name: "Projects", path: "/user/projects", icon: <HiOutlineDocumentReport className="w-5 h-5" /> },
     { name: "Calendar", path: "/user/calendar", icon: <HiOutlineCalendar className="w-5 h-5" /> },
     { name: "Analytics", path: "/user/charts", icon: <HiOutlineChartBar className="w-5 h-5" /> },
     { name: "Chat", path: "/user/chat", icon: <HiOutlineChat className="w-5 h-5" /> }
