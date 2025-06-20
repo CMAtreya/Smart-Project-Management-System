@@ -37,9 +37,8 @@ router.get('/', async (req, res) => {
     const tasks = await Task.find(queryObject)
       .populate('project', 'title')
       .populate('assignedTo', 'name email')
-      .populate('dependencies', 'title')
       .populate('createdBy', 'name email')
-      .populate('comments.author', 'name email');
+     
     
     res.status(200).json({ tasks, count: tasks.length });
   } catch (error) {
@@ -72,24 +71,24 @@ router.get('/:id', async (req, res) => {
 
 // Create task
 // POST /api/tasks
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     // Add the current user as the creator
     req.body.createdBy = req.user.userId;
-    
-    // Check if project exists
-    const project = await Project.findById(req.body.project);
-    if (!project) {
+ const project = await Project.findById(req.body.project);
+       if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.body.project}` });
     }
     
+    // Check if project exists
+   
+ 
     const task = await Task.create(req.body);
     
     // Populate the created task with related data
     const populatedTask = await Task.findById(task._id)
       .populate('project', 'title')
       .populate('assignedTo', 'name email')
-      .populate('dependencies', 'title')
       .populate('createdBy', 'name email');
     
     res.status(201).json({ task: populatedTask });
@@ -112,7 +111,8 @@ router.patch('/:id', async (req, res) => {
     // Check if user is authorized to update the task
     // Only task creator, project manager, assigned team member, or admin can update
     const project = await Project.findById(task.project);
-    const isAssignedToTask = task.assignedTo.some(id => id.toString() === req.user.userId);
+   const isAssignedToTask = task.assignedTo.toString() === req.user.userId;
+
     
     if (
       req.user.role !== 'admin' && 
@@ -130,9 +130,8 @@ router.patch('/:id', async (req, res) => {
     )
       .populate('project', 'title')
       .populate('assignedTo', 'name email')
-      .populate('dependencies', 'title')
       .populate('createdBy', 'name email')
-      .populate('comments.author', 'name email');
+
     
     res.status(200).json({ task: updatedTask });
   } catch (error) {

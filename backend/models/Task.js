@@ -19,7 +19,7 @@ const TaskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['To Do', 'In Progress', 'Review', 'Done'],
+    enum: ['To Do', 'In Progress', 'In Review', 'Completed', 'Blocked'],
     default: 'To Do'
   },
   dueDate: {
@@ -28,17 +28,33 @@ const TaskSchema = new mongoose.Schema({
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'user', // ✅ matches user model
     required: [true, 'Please assign the task to someone']
   },
-  type: {
-    type: String,
-    enum: ['personal', 'team'],
-    default: 'personal'
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'projects', // ✅ matches project model
+    required: [true, 'Please associate this task with a project']
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
+  timeTracking: {
+    estimated: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    spent: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'user', // ✅ matches user model
     required: true
   },
   createdAt: {

@@ -63,8 +63,10 @@ router.get('/projects', authenticateUser, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('team', 'name')
-      .populate('createdBy', 'name email');
+     
+  .populate('teamMembers', 'name email role')
+  .populate('createdBy', 'name email');
+
 
     if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.params.id}` });
@@ -144,7 +146,7 @@ router.post('/create', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
-
+    console.log(project)
     if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.params.id}` });
     }
@@ -170,7 +172,8 @@ router.patch('/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('team', 'name members')
+      .populate('teamMembers', 'name email') // ✅ correct
+
       .populate('createdBy', 'name email');
 
     res.status(200).json({ project: updatedProject });

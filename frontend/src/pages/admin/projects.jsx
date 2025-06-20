@@ -617,37 +617,96 @@ useEffect(() => {
     setCurrentProject(project);
     setIsModalOpen(true);
   };
+const handleDeleteProject = async (projectId) => {
+  try {
+  
 
-  const handleDeleteProject = (projectId) => {
-    // In a real app, you would call an API to delete the project
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-  };
+    const token = localStorage.getItem('userToken');
+    console.log(projectId)
 
-  const handleSaveProject = (projectData) => {
-    if (currentProject) {
-      // Update existing project
-      setProjects(prev => prev.map(project => 
-        project.id === currentProject.id ? { ...project, ...projectData } : project
-      ));
-    } else {
-      // Create new project
-      const newProject = {
-        ...projectData,
-        id: Date.now(), // Generate a temporary ID
-        createdAt: new Date().toISOString()
-      };
-      setProjects(prev => [...prev, newProject]);
-      
-      // Automatically create a team chat with the same name as the project
-      // In a real application, this would make an API call to create a chat team
-      console.log(`Created new team chat: ${projectData.title}`);
-      
-      // The chat team would include all team members from the project
-      const teamMembers = projectData.teamMembers.map(member => member.name).join(', ');
-      console.log(`Team members: ${teamMembers}`);
+    if (!projectId) {
+      toast.error("Project ID is missing");
+      return;
     }
+
+
+    await axios.delete(`http://localhost:5000/api/projects/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    // Update local state
+    setProjects(prev => prev.filter(project => project._id !== projectId));
+
+    toast.success('Project deleted successfully!');
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    toast.error(error.response?.data?.message || 'Failed to delete project');
+  }
+};
+
+
+  
+const handleSaveProject = async (projectData) => {
+  try {
+    const token = localStorage.getItem('userToken');
+
+    if (currentProject) {
+      // 🔄 Update existing project in the backend
+      const response = await axios.patch(
+        `http://localhost:5000/api/projects/${currentProject._id}`,
+        projectData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const updatedProject = response.data.project;
+
+      // ✅ Update local state with updated project
+      setProjects(prev =>
+        prev.map(project =>
+          project._id === currentProject._id ? updatedProject : project
+        )
+      );
+
+      toast.success('Project updated successfully!');
+    } else {
+      // ➕ Create new project in backend
+      const response = await axios.post(
+        'http://localhost:5000/api/projects/create',
+        projectData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      console.log(response)
+
+      const newProject = response.data.project;
+
+      // ✅ Add new project to local state
+      setProjects(prev => [...prev, newProject]);
+
+      // Simulate team chat creation (optional)
+      console.log(`Created new team chat: ${newProject.title}`);
+      const teamMembers = newProject.teamMembers.map(member => member.name).join(', ');
+      console.log(`Team members: ${teamMembers}`);
+
+      toast.success('Project created successfully!');
+    }
+
     setIsModalOpen(false);
-  };
+  } catch (error) {
+    console.error('Error saving project:', error);
+    toast.error(error.response?.data?.message || 'Failed to save project');
+  }
+};
+
 
   const handleViewDetails = (projectId) => {
     // Navigate to tasks page with the project ID
@@ -925,9 +984,10 @@ useEffect(() => {
                   <ProjectCard 
                     key={project._id}
                     project={project}
-                    onViewDetails={handleViewDetails}
+                    onViewDetails={() =>handleViewDetails(project._id)}
                     onEdit={handleEditProject}
-                    onDelete={handleDeleteProject}
+                    onDelete={() => handleDeleteProject(project._id)}
+
                   />
                 ))}
               </div>

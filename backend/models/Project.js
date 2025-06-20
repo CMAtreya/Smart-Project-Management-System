@@ -34,6 +34,10 @@ const projectSchema = new mongoose.Schema({
     max: 100,
     default: 0,
   },
+  tags: {
+  type: [String],
+  default: []
+}  ,
   teamMembers: [
     {
       type: mongoose.Schema.Types.ObjectId,

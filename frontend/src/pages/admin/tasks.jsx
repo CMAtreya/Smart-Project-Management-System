@@ -13,6 +13,11 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar';
+import axios from 'axios'; // ✅ Fixes "axios is not defined"
+
+import { toast } from 'react-toastify'; // ✅ Fixes "toast is not defined"
+import 'react-toastify/dist/ReactToastify.css'; // Optional: ensures proper toast styling
+
 
 // Add CSS class for system fonts and background patterns
 const backgroundCSS = `
@@ -31,7 +36,9 @@ const Loader = () => (
 );
 
 // Task Card Component
-const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
+const TaskCard = ({ task, onDelete, onStatusChange }) => {
+  const token = localStorage.getItem('userToken');
+
   const priorityColors = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
     'Medium': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
@@ -47,15 +54,53 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
     'Blocked': 'bg-red-500/20 text-red-400 border-red-500/30'
   };
 
-
-
-  // Calculate days remaining
   const calculateDaysRemaining = (dueDate) => {
     const today = new Date();
     const due = new Date(dueDate);
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const updatedFields = {
+        status: 'In Progress' // You can replace this with dynamic values or a form later
+      };
+
+      const response = await axios.patch(
+        `http://localhost:5000/api/tasks/${task._id}`,
+        updatedFields,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Task updated:', response.data.task);
+    } catch (error) {
+      console.error('Error updating task:', error.response?.data || error.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/tasks/${task._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log('Task deleted:', response.data.message);
+      onDelete(task._id); // Notify parent
+    } catch (error) {
+      console.error('Error deleting task:', error.response?.data || error.message);
+    }
   };
 
   const daysRemaining = calculateDaysRemaining(task.dueDate);
@@ -92,13 +137,13 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
         </div>
         <div className="flex space-x-2">
           <button 
-            onClick={() => onEdit(task)}
+            onClick={handleUpdate}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             <FaEdit />
           </button>
           <button 
-            onClick={() => onDelete(task.id)}
+            onClick={handleDelete}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-red-400 hover:text-red-300 transition-colors"
           >
             <FaTrash />
@@ -136,7 +181,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
           {['To Do', 'In Progress', 'In Review', 'Completed'].map(status => (
             <button
               key={status}
-              onClick={() => onStatusChange(task.id, status)}
+              onClick={() => onStatusChange(task._id, status)}
               className={`py-1 px-2 text-xs rounded-lg transition-colors ${task.status === status ? 
                 'bg-blue-600 text-white' : 
                 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
@@ -166,7 +211,9 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
 };
 
 // Task Form Modal Component
-const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
+const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectId }) => {
+  // ✅ projectId is now safely accessible here
+
   const initialFormState = task ? {
     ...task,
     dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
@@ -186,11 +233,35 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
 
   const [formData, setFormData] = useState(initialFormState);
   const [selectedTag, setSelectedTag] = useState('');
+ const [projectmember , setProjectmember] = useState('');
+ const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+const fetchProjectMembers = async () => {
+  try {
+    const token = localStorage.getItem('userToken');
+    const res = await axios.get(`http://localhost:5000/api/projects/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log(res);
+
+    const members = res.data.project.teamMembers || [];
+    setProjectmember(members);
+  } catch (error) {
+    console.error('Failed to fetch project members:', error);
+  }
+};
+
+useEffect(() => {
+  if (projectId) {
+    fetchProjectMembers();
+  }
+}, [projectId]);
 
   const handleAddTag = () => {
     if (selectedTag && !formData.tags.includes(selectedTag)) {
@@ -220,20 +291,42 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
     }));
   };
 
-  const handleAssigneeChange = (e) => {
-    const memberId = e.target.value;
-    if (memberId === '') {
-      setFormData(prev => ({ ...prev, assignedTo: null }));
-    } else {
-      const selectedMember = projectMembers.find(member => member.id === memberId);
-      setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
-    }
-  };
+ // Replace this handler function
+const handleAssigneeChange = (e) => {
+  const memberId = e.target.value;
+  if (memberId === '') {
+    setFormData(prev => ({ ...prev, assignedTo: null }));
+  } else {
+    const selectedMember = projectmember.find(member => member._id === memberId);
+    setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
+  }
+};
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+      const updatedFormData = {
+      ...formData,
+      project: projectId // <-- pass it from props, context, or useState
+    };
+    console.log(formData);
+    const token = localStorage.getItem('userToken');
+    const response = await axios.post(
+      'http://localhost:5000/api/tasks/create',
+          updatedFormData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ space after Bearer
+          'Content-Type': 'application/json' // ✅ good practice
+        }
+      }
+    );
+    console.log('Task created:', response.data);
+     onClose();
+  } catch (error) {
+    console.error('Error creating the task:', error.response?.data || error.message);
+  }
+};
 
   if (!isOpen) return null;
 
@@ -385,17 +478,19 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Assigned To</label>
-            <select
-              value={formData.assignedTo ? formData.assignedTo.id : ''}
-              onChange={handleAssigneeChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select team member</option>
-              {projectMembers.map(member => (
-                <option key={member.id} value={member.id}>{member.name} ({member.role})</option>
-              ))}
-            </select>
+          <select
+  value={formData.assignedTo ? formData.assignedTo.id : ''}
+  onChange={handleAssigneeChange}
+  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+>
+  <option value="">Select team member</option>
+  {projectMembers.map(member => (
+    <option key={member._id} value={member._id}>
+      {member.name} ({member.role})
+    </option>
+  ))}
+</select>
+
           </div>
 
           <div>
@@ -546,141 +641,59 @@ function Tasks() {
     };
   }, []);
   
-  // Fetch project and tasks (mock data for now)
-  useEffect(() => {
-    // Get project ID from location state
-    const projectId = location.state?.projectId;
-    
-    if (!projectId) {
-      // If no project ID is provided, redirect to projects page
-      navigate('/admin/projects');
-      return;
-    }
-    
-    // Simulate API call to fetch project and tasks
-    setTimeout(() => {
-      // Mock project data
-      const mockProject = {
-        id: projectId,
-        title: 'Website Redesign',
-        description: 'Complete overhaul of the company website with modern design and improved user experience',
-        startDate: '2023-06-01',
-        endDate: '2023-08-15',
-        priority: 'High',
-        status: 'In Progress',
-        progress: 65,
-        teamMembers: [
-          { id: 'user1', name: 'John Doe', role: 'Developer' },
-          { id: 'user2', name: 'Jane Smith', role: 'Designer' },
-          { id: 'user6', name: 'Emily Davis', role: 'UI/UX Designer' },
-          { id: 'user3', name: 'Mike Johnson', role: 'Project Manager' }
-        ],
-        tags: ['Frontend', 'UI/UX', 'Design']
-      };
-      
-      // Mock tasks data
-      const mockTasks = [
-        {
-          id: 1,
-          title: 'Design Homepage Mockup',
-          description: 'Create a modern and user-friendly homepage design that aligns with the brand guidelines',
-          priority: 'High',
-          status: 'Completed',
-          dueDate: '2023-06-15',
-          assignedTo: { id: 'user2', name: 'Jane Smith', role: 'Designer' },
-          type: 'Design',
-          timeTracking: { estimated: 16, spent: 20 }
-        },
-        {
-          id: 2,
-          title: 'Implement Responsive Navigation',
-          description: 'Develop a responsive navigation menu that works well on all device sizes',
-          priority: 'Medium',
-          status: 'In Progress',
-          dueDate: '2023-07-05',
-          assignedTo: { id: 'user1', name: 'John Doe', role: 'Developer' },
-          type: 'Feature',
-          timeTracking: { estimated: 8, spent: 5 }
-        },
-        {
-          id: 3,
-          title: 'Create User Authentication System',
-          description: 'Implement secure user authentication with login, registration, and password recovery',
-          priority: 'High',
-          status: 'To Do',
-          dueDate: '2023-07-20',
-          assignedTo: { id: 'user1', name: 'John Doe', role: 'Developer' },
-          type: 'Feature',
-          timeTracking: { estimated: 24, spent: 0 }
-        },
-        {
-          id: 4,
-          title: 'Design Product Listing Page',
-          description: 'Create a visually appealing and functional product listing page with filtering options',
-          priority: 'Medium',
-          status: 'In Review',
-          dueDate: '2023-06-30',
-          assignedTo: { id: 'user6', name: 'Emily Davis', role: 'UI/UX Designer' },
-          type: 'Design',
-          timeTracking: { estimated: 12, spent: 14 }
-        },
-        {
-          id: 5,
-          title: 'Fix Mobile Responsiveness Issues',
-          description: 'Address and fix various responsiveness issues on mobile devices',
-          priority: 'Urgent',
-          status: 'In Progress',
-          dueDate: '2023-06-25',
-          assignedTo: { id: 'user1', name: 'John Doe', role: 'Developer' },
-          type: 'Bug',
-          timeTracking: { estimated: 6, spent: 4 }
-        },
-        {
-          id: 6,
-          title: 'Create Content Management System',
-          description: 'Develop a user-friendly CMS for managing website content',
-          priority: 'Low',
-          status: 'To Do',
-          dueDate: '2023-08-10',
-          assignedTo: { id: 'user1', name: 'John Doe', role: 'Developer' },
-          type: 'Feature',
-          timeTracking: { estimated: 40, spent: 0 }
-        },
-        {
-          id: 7,
-          title: 'Optimize Website Performance',
-          description: 'Improve website loading speed and overall performance',
-          priority: 'Medium',
-          status: 'To Do',
-          dueDate: '2023-08-05',
-          assignedTo: { id: 'user1', name: 'John Doe', role: 'Developer' },
-          type: 'Maintenance',
-          timeTracking: { estimated: 16, spent: 0 }
-        },
-        {
-          id: 8,
-          title: 'Write User Documentation',
-          description: 'Create comprehensive documentation for website users',
-          priority: 'Low',
-          status: 'To Do',
-          dueDate: '2023-08-12',
-          assignedTo: { id: 'user3', name: 'Mike Johnson', role: 'Project Manager' },
-          type: 'Documentation',
-          timeTracking: { estimated: 8, spent: 0 }
+  
+useEffect(() => {
+  const projectId = location.state?.projectId;
+
+  if (!projectId) {
+    navigate('/admin/projects');
+    return;
+  }
+
+  const fetchProjectAndTasks = async () => {
+    try {
+      const token = localStorage.getItem('userToken');
+
+      // 1️⃣ Fetch project details from backend
+      const projectRes = await axios.get(`http://localhost:5000/api/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      ];
-      
-      // Update team members with their assigned tasks
-      const teamMembersWithTasks = mockProject.teamMembers.map(member => {
-        const memberTasks = mockTasks.filter(task => task.assignedTo.id === member.id);
+      });
+
+      const fetchedProject = projectRes.data.project;
+
+      // 2️⃣ Fetch all tasks for this project
+      const tasksRes = await axios.get(`http://localhost:5000/api/tasks?projectId=${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const fetchedTasks = tasksRes.data.tasks;
+
+      // 3️⃣ Map tasks to team members
+      const teamMembersWithTasks = fetchedProject.teamMembers.map(member => {
+        const memberTasks = fetchedTasks.filter(
+          task => task.assignedTo && task.assignedTo._id === member._id
+        );
         return { ...member, tasks: memberTasks };
       });
-      
-      setProject({ ...mockProject, teamMembers: teamMembersWithTasks });
-      setTasks(mockTasks);
+
+      // 4️⃣ Update state
+      setProject({ ...fetchedProject, teamMembers: teamMembersWithTasks });
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error('Failed to fetch project or tasks:', error);
+      toast.error('Failed to load project details');
+      navigate('/admin/projects');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, [location.state, navigate]);
+    }
+  };
+
+  fetchProjectAndTasks();
+}, [location.state, navigate]);
 
   const handleCreateTask = () => {
     setCurrentTask(null);
@@ -1421,17 +1434,19 @@ function Tasks() {
             )}
 
             {/* Task Form Modal */}
-            <AnimatePresence>
-              {isModalOpen && (
-                <TaskFormModal
-                  isOpen={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
-                  task={currentTask}
-                  onSave={handleSaveTask}
-                  projectMembers={project?.teamMembers || []}
-                />
-              )}
-            </AnimatePresence>
+           <AnimatePresence>
+  {isModalOpen && (
+    <TaskFormModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      task={currentTask}
+      onSave={handleSaveTask}
+      projectMembers={project?.teamMembers || []}
+      projectId={project?._id}  // ✅ This is the fix
+    />
+  )}
+</AnimatePresence>
+
           </motion.div>
         )}
       </AnimatePresence>
