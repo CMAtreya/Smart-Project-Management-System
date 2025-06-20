@@ -38,6 +38,8 @@ const Loader = () => (
 // Task Card Component
 const TaskCard = ({ task, onDelete, onStatusChange }) => {
   const token = localStorage.getItem('userToken');
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const priorityColors = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -62,28 +64,34 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
     return diffDays;
   };
 
-  const handleUpdate = async () => {
-    try {
-      const updatedFields = {
-        status: 'In Progress' // You can replace this with dynamic values or a form later
-      };
+ const handleUpdateTask = async (updatedData) => {
+  try {
+    const token = localStorage.getItem('userToken');
 
-      const response = await axios.patch(
-        `http://localhost:5000/api/tasks/${task._id}`,
-        updatedFields,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+    const response = await axios.patch(
+      `http://localhost:5000/api/tasks/${updatedData._id}`,
+      updatedData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
+      }
+    );
 
-      console.log('Task updated:', response.data.task);
-    } catch (error) {
-      console.error('Error updating task:', error.response?.data || error.message);
-    }
-  };
+    console.log('Task updated successfully:', response.data.task);
+    setIsModalOpen(false); // Close modal after success
+    // Optionally: refetch task list here
+  } catch (error) {
+    console.error('Error updating task:', error.response?.data || error.message);
+  }
+};
+
+  const handleEditClick = (task) => {
+  setSelectedTask(task);       // Pass task data to modal
+  setIsModalOpen(true);        // Open modal
+  handleUpdate()
+};
 
   const handleDelete = async () => {
     try {
@@ -137,7 +145,7 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
         </div>
         <div className="flex space-x-2">
           <button 
-            onClick={handleUpdate}
+         onClick={() => handleEditClick(task)}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             <FaEdit />
@@ -209,7 +217,6 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
     </motion.div>
   );
 };
-
 // Task Form Modal Component
 const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectId }) => {
   // ✅ projectId is now safely accessible here
@@ -912,6 +919,11 @@ useEffect(() => {
     'Completed': tasks.filter(task => task.status === 'Completed'),
     'Blocked': tasks.filter(task => task.status === 'Blocked')
   };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  onSave(formData); // Send data to parent
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e1e1e] to-[#121212] text-white transition-colors duration-300">
