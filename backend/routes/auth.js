@@ -48,11 +48,14 @@ router.post('/register', async (req, res) => {
 // LOGIN
 router.post('/login', async (req, res) => {
   try {
-  
-    const { email, password, role } = req.body || {};
-if (!email || !password || !role) {
-  return res.status(400).json({ message: 'All fields are required' });
-}
+    const { email, password, role, adminSecretKey } = req.body || {};
+    console.log('Login Request Body:', req.body);
+    console.log('adminSecretKey from req:', adminSecretKey);
+    console.log('ADMIN_SECRET_KEY from env:', process.env.ADMIN_SECRET_KEY);
+
+    if (role === 'admin' && adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
+      return res.status(403).json({ message: 'Invalid admin secret key' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });

@@ -61,6 +61,7 @@ io.on('connection', (socket) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/events', require('./routes/calender'));
 
 // Default route
 app.get('/', (req, res) => {

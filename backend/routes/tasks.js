@@ -75,8 +75,11 @@ router.post('/create', async (req, res) => {
   try {
     // Add the current user as the creator
     req.body.createdBy = req.user.userId;
- const project = await Project.findById(req.body.project);
-       if (!project) {
+    console.log('Creating task with body:', req.body);
+    // Remove any _id field to prevent duplicate key errors
+    delete req.body._id;
+    const project = await Project.findById(req.body.project);
+    if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.body.project}` });
     }
     

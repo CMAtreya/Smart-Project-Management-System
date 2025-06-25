@@ -57,6 +57,9 @@ const handleSubmit = async (e) => {
 
   const role = isAdminMode ? 'admin' : 'user';
   const loginData = { email, password, role };
+  if (isAdminMode) {
+    loginData.adminSecretKey = adminSecretKey;
+  }
 
   console.log("Sending:", loginData);
 
@@ -145,7 +148,7 @@ const handleSubmit = async (e) => {
             )}
 
             {/* Login Form */}
-            <div>
+            <form onSubmit={handleSubmit}>
               {/* Email */}
               <div className="mb-4">
                 <label className="block mb-1 font-semibold">Email Address</label>
@@ -197,13 +200,12 @@ const handleSubmit = async (e) => {
 
               {/* Submit */}
               <button
-                type="button"
-                onClick={handleSubmit}
+                type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 py-3 mt-6 rounded font-semibold transition"
               >
                 Sign In as {isAdminMode ? 'Admin' : 'User'}
               </button>
-            </div>
+            </form>
 
             </div><br/>
             Don't have an account?{" "}

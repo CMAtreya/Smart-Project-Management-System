@@ -29,8 +29,8 @@ export const TaskProvider = ({ children }) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams(filters).toString();
-      const response = await axios.get(`/api/tasks?${queryParams}`);
-      setTasks(response.data);
+      const response = await axios.get(`/tasks?${queryParams}`);
+      setTasks(response.data.tasks);
       setError(null);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -43,7 +43,7 @@ export const TaskProvider = ({ children }) => {
 
   const getTask = async (taskId) => {
     try {
-      const response = await axios.get(`/api/tasks/${taskId}`);
+      const response = await axios.get(`/tasks/${taskId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching task:', error);
@@ -54,10 +54,12 @@ export const TaskProvider = ({ children }) => {
 
   const createTask = async (taskData) => {
     try {
-      const response = await axios.post('/api/tasks', taskData);
-      setTasks([...tasks, response.data]);
+      const response = await axios.post('/tasks/create', taskData);
+      setTasks([...tasks, response.data.task]);
+
+      console.log('Task created:', response.data.task);
       toast.success('Task created successfully');
-      return response.data;
+      return response.data.task;
     } catch (error) {
       console.error('Error creating task:', error);
       toast.error('Failed to create task');
@@ -67,12 +69,12 @@ export const TaskProvider = ({ children }) => {
 
   const updateTask = async (taskId, taskData) => {
     try {
-      const response = await axios.put(`/api/tasks/${taskId}`, taskData);
+      const response = await axios.patch(`/tasks/${taskId}`, taskData);
       setTasks(tasks.map(task => 
-        task._id === taskId ? response.data : task
+        task._id === taskId ? response.data.task : task
       ));
       toast.success('Task updated successfully');
-      return response.data;
+      return response.data.task;
     } catch (error) {
       console.error('Error updating task:', error);
       toast.error('Failed to update task');
@@ -82,9 +84,10 @@ export const TaskProvider = ({ children }) => {
 
   const deleteTask = async (taskId) => {
     try {
-      await axios.delete(`/api/tasks/${taskId}`);
+      await axios.delete(`/tasks/${taskId}`);
       setTasks(tasks.filter(task => task._id !== taskId));
       toast.success('Task deleted successfully');
+      return { success: true, message: 'Task deleted successfully' };
     } catch (error) {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task');
@@ -94,7 +97,7 @@ export const TaskProvider = ({ children }) => {
 
   const assignTask = async (taskId, userId) => {
     try {
-      const response = await axios.post(`/api/tasks/${taskId}/assign`, { userId });
+      const response = await axios.post(`/tasks/${taskId}/assign`, { userId });
       setTasks(tasks.map(task => 
         task._id === taskId ? response.data : task
       ));
@@ -109,7 +112,7 @@ export const TaskProvider = ({ children }) => {
 
   const unassignTask = async (taskId, userId) => {
     try {
-      const response = await axios.delete(`/api/tasks/${taskId}/assign/${userId}`);
+      const response = await axios.delete(`/tasks/${taskId}/assign/${userId}`);
       setTasks(tasks.map(task => 
         task._id === taskId ? response.data : task
       ));
@@ -124,7 +127,7 @@ export const TaskProvider = ({ children }) => {
 
   const updateTaskStatus = async (taskId, status) => {
     try {
-      const response = await axios.patch(`/api/tasks/${taskId}/status`, { status });
+      const response = await axios.patch(`/tasks/${taskId}/status`, { status });
       setTasks(tasks.map(task => 
         task._id === taskId ? response.data : task
       ));
@@ -139,7 +142,7 @@ export const TaskProvider = ({ children }) => {
 
   const addComment = async (taskId, comment) => {
     try {
-      const response = await axios.post(`/api/tasks/${taskId}/comments`, { content: comment });
+      const response = await axios.post(`/tasks/${taskId}/comments`, { content: comment });
       setTasks(tasks.map(task => 
         task._id === taskId ? response.data : task
       ));

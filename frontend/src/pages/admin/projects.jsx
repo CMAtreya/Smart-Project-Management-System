@@ -649,11 +649,14 @@ const handleDeleteProject = async (projectId) => {
 
   
 const handleSaveProject = async (projectData) => {
+  console.log("Sending project data:", projectData);
   try {
+    console.log("Saving project data:", projectData);
     const token = localStorage.getItem('userToken');
 
     if (currentProject) {
       // 🔄 Update existing project in the backend
+      console.log(" sending the request ")
       const response = await axios.patch(
         `http://localhost:5000/api/projects/${currentProject._id}`,
         projectData,
@@ -663,6 +666,7 @@ const handleSaveProject = async (projectData) => {
           }
         }
       );
+      console.log(response);
 
       const updatedProject = response.data.project;
 

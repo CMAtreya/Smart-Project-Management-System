@@ -12,12 +12,20 @@ import {
   FaFileAlt, FaComments, FaHistory, FaExclamation, FaInfoCircle, FaLightbulb
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTask } from '../../contexts/TaskContext';
 import Navbar from '../../components/Navbar';
 import axios from 'axios'; // ✅ Fixes "axios is not defined"
 
 import { toast } from 'react-toastify'; // ✅ Fixes "toast is not defined"
 import 'react-toastify/dist/ReactToastify.css'; // Optional: ensures proper toast styling
 
+
+  const priorityColors = {
+    'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
+    'Medium': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    'High': 'bg-red-500/20 text-red-400 border-red-500/30',
+    'Urgent': 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+  };
 
 // Add CSS class for system fonts and background patterns
 const backgroundCSS = `
@@ -36,17 +44,9 @@ const Loader = () => (
 );
 
 // Task Card Component
-const TaskCard = ({ task, onDelete, onStatusChange }) => {
+const TaskCard = ({ task, onDelete, onStatusChange, onEdit }) => {
+  const { deleteTask, updateTask } = useTask();
   const token = localStorage.getItem('userToken');
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const priorityColors = {
-    'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
-    'Medium': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    'High': 'bg-red-500/20 text-red-400 border-red-500/30',
-    'Urgent': 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-  };
 
   const statusColors = {
     'To Do': 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -64,50 +64,27 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
     return diffDays;
   };
 
- const handleUpdateTask = async (updatedData) => {
-  try {
-    const token = localStorage.getItem('userToken');
+  const handleUpdate = async () => {
+    try {
+      const updatedFields = {
+        status: 'In Progress' // You can replace this with dynamic values or a form later
+      };
 
-    const response = await axios.patch(
-      `http://localhost:5000/api/tasks/${updatedData._id}`,
-      updatedData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      const updatedTask = await updateTask(task._id, updatedFields);
+      console.log('Task updated:', updatedTask);
+    } catch (error) {
+      console.error('Error updating task:', error.response?.data || error.message);
+    }
+  };
 
-    console.log('Task updated successfully:', response.data.task);
-    setIsModalOpen(false); // Close modal after success
-    // Optionally: refetch task list here
-  } catch (error) {
-    console.error('Error updating task:', error.response?.data || error.message);
-  }
-};
-
-  const handleEditClick = (task) => {
-  setSelectedTask(task);       // Pass task data to modal
-  setIsModalOpen(true);        // Open modal
-  handleUpdate()
-};
+  const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
+    setDeleting(true);
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/api/tasks/${task._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      console.log('Task deleted:', response.data.message);
-      onDelete(task._id); // Notify parent
-    } catch (error) {
-      console.error('Error deleting task:', error.response?.data || error.message);
+      await onDelete(task._id);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -145,16 +122,17 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
         </div>
         <div className="flex space-x-2">
           <button 
-         onClick={() => handleEditClick(task)}
-            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <FaEdit />
-          </button>
+  onClick={() => onEdit(task)}
+  className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
+>
+  <FaEdit />
+</button>
           <button 
             onClick={handleDelete}
+            disabled={deleting}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-red-400 hover:text-red-300 transition-colors"
           >
-            <FaTrash />
+            {deleting ? "Deleting..." : <FaTrash />}
           </button>
         </div>
       </div>
@@ -189,7 +167,10 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
           {['To Do', 'In Progress', 'In Review', 'Completed'].map(status => (
             <button
               key={status}
-              onClick={() => onStatusChange(task._id, status)}
+              onClick={() => {
+                updateTask(task._id, { status });
+                if (onStatusChange) onStatusChange(task._id, status);
+              }}
               className={`py-1 px-2 text-xs rounded-lg transition-colors ${task.status === status ? 
                 'bg-blue-600 text-white' : 
                 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
@@ -217,6 +198,7 @@ const TaskCard = ({ task, onDelete, onStatusChange }) => {
     </motion.div>
   );
 };
+
 // Task Form Modal Component
 const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectId }) => {
   // ✅ projectId is now safely accessible here
@@ -242,6 +224,7 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectI
   const [selectedTag, setSelectedTag] = useState('');
  const [projectmember , setProjectmember] = useState('');
  const [isFormOpen, setIsFormOpen] = useState(false);
+ const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -250,7 +233,7 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectI
 const fetchProjectMembers = async () => {
   try {
     const token = localStorage.getItem('userToken');
-    const res = await axios.get(`http://localhost:5000/api/projects/${projectId}`, {
+    const res = await axios.get(`/projects/${projectId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -309,29 +292,20 @@ const handleAssigneeChange = (e) => {
   }
 };
 
+const { createTask } = useTask();
+
 const handleSubmit = async (e) => {
   e.preventDefault();
+  if (submitting) return;
+  setSubmitting(true);
   try {
-      const updatedFormData = {
-      ...formData,
-      project: projectId // <-- pass it from props, context, or useState
-    };
-    console.log(formData);
-    const token = localStorage.getItem('userToken');
-    const response = await axios.post(
-      'http://localhost:5000/api/tasks/create',
-          updatedFormData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // ✅ space after Bearer
-          'Content-Type': 'application/json' // ✅ good practice
-        }
-      }
-    );
-    console.log('Task created:', response.data);
-     onClose();
+    // Only call onSave, which triggers the backend call in parent
+    if (onSave) await onSave(formData);
+    onClose();
   } catch (error) {
     console.error('Error creating the task:', error.response?.data || error.message);
+  } finally {
+    setSubmitting(false);
   }
 };
 
@@ -590,24 +564,24 @@ const TeamMemberCard = ({ member }) => {
         
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400">Assigned</p>
+            <p className="text-xs text-gray-400 mb-1">Assigned</p>
             <p className="text-lg font-semibold text-white">{member.tasks ? member.tasks.length : 0}</p>
           </div>
           <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400">Completed</p>
+            <p className="text-xs text-gray-400 mb-1">Completed</p>
             <p className="text-lg font-semibold text-white">{member.tasks ? member.tasks.filter(task => task.status === 'Completed').length : 0}</p>
           </div>
         </div>
         
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400">Hours Spent</p>
+            <p className="text-xs text-gray-400 mb-1">Hours Spent</p>
             <p className="text-lg font-semibold text-white">
               {member.tasks ? member.tasks.reduce((total, task) => total + (task.timeTracking?.spent || 0), 0) : 0}
             </p>
           </div>
           <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400">Estimated</p>
+            <p className="text-xs text-gray-400 mb-1">Estimated</p>
             <p className="text-lg font-semibold text-white">
               {member.tasks ? member.tasks.reduce((total, task) => total + (task.timeTracking?.estimated || 0), 0) : 0}
             </p>
@@ -662,7 +636,12 @@ useEffect(() => {
       const token = localStorage.getItem('userToken');
 
       // 1️⃣ Fetch project details from backend
-      const projectRes = await axios.get(`http://localhost:5000/api/projects/${projectId}`, {
+      if (!projectId || projectId === 'undefined') {
+        toast.error('Invalid project ID.');
+        navigate('/admin/projects');
+        return;
+      }
+      const projectRes = await axios.get(`projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -671,7 +650,7 @@ useEffect(() => {
       const fetchedProject = projectRes.data.project;
 
       // 2️⃣ Fetch all tasks for this project
-      const tasksRes = await axios.get(`http://localhost:5000/api/tasks?projectId=${projectId}`, {
+      const tasksRes = await axios.get(`tasks?projectId=${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -712,106 +691,116 @@ useEffect(() => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId) => {
-    // In a real app, you would call an API to delete the task
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-    
-    // Update team members' tasks
-    if (project) {
-      const updatedTeamMembers = project.teamMembers.map(member => {
-        if (member.tasks) {
-          return {
-            ...member,
-            tasks: member.tasks.filter(task => task.id !== taskId)
-          };
-        }
-        return member;
-      });
-      
-      setProject(prev => ({ ...prev, teamMembers: updatedTeamMembers }));
-    }
-  };
+const handleDeleteTask = async (taskId) => {
+const authToken = localStorage.getItem('Token');
 
-  const handleSaveTask = (taskData) => {
-    if (currentTask) {
-      // Update existing task
-      const updatedTask = { ...currentTask, ...taskData };
-      setTasks(prev => prev.map(task => 
-        task.id === currentTask.id ? updatedTask : task
-      ));
-      
-      // Update team members' tasks
-      if (project) {
-        const updatedTeamMembers = project.teamMembers.map(member => {
-          if (member.tasks) {
-            return {
-              ...member,
-              tasks: member.tasks.map(task => 
-                task.id === currentTask.id ? updatedTask : task
-              )
-            };
-          }
-          return member;
-        });
-        
-        setProject(prev => ({ ...prev, teamMembers: updatedTeamMembers }));
+  try {
+    const res = await axios.delete(`/tasks/${taskId}`, {
+      headers: {
+        Authorization: `Bearer ${authToken}` // ⬅️ Replace with your actual token
       }
-    } else {
-      // Create new task
-      const newTask = {
-        ...taskData,
-        id: Date.now(), // Generate a temporary ID
-        createdAt: new Date().toISOString()
-      };
-      setTasks(prev => [...prev, newTask]);
-      
-      // Update assigned team member's tasks
-      if (project && taskData.assignedTo) {
-        const updatedTeamMembers = project.teamMembers.map(member => {
-          if (member.id === taskData.assignedTo.id) {
-            return {
-              ...member,
-              tasks: [...(member.tasks || []), newTask]
-            };
-          }
-          return member;
-        });
-        
-        setProject(prev => ({ ...prev, teamMembers: updatedTeamMembers }));
-      }
-    }
-    setIsModalOpen(false);
-  };
-
-  const handleStatusChange = (taskId, newStatus) => {
-    // Update task status
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        const updatedTask = { ...task, status: newStatus };
-        return updatedTask;
-      }
-      return task;
     });
-    
-    setTasks(updatedTasks);
-    
-    // Update team members' tasks
-    if (project) {
-      const updatedTeamMembers = project.teamMembers.map(member => {
-        if (member.tasks) {
-          return {
-            ...member,
-            tasks: member.tasks.map(task => 
-              task.id === taskId ? { ...task, status: newStatus } : task
-            )
-          };
+
+    toast.success(res.data.message || "🗑️ Task deleted successfully!");
+
+  const taskRes = await axios.get(`/tasks?projectId=${project._id}`, {
+  headers: { Authorization: `Bearer ${authToken}` }
+});
+setTasks(taskRes.data.tasks);
+
+    const projectRes = await axios.get(`/projects/${project.id}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    setProject(projectRes.data);
+
+  } catch (error) {
+    console.error("❌ Error deleting task:", error);
+    toast.error(error?.response?.data?.message || "❌ Failed to delete task");
+  }
+};
+
+
+const handleSaveTask = async (taskData) => {
+  const authToken = localStorage.getItem('Token');
+
+  try {
+    // Always include the project field in the request body
+    const dataToSend = { ...taskData, project: project._id };
+
+    if (currentTask) {
+      // ✅ Update existing task (use _id, not id)
+      const res = await axios.patch(`/tasks/${currentTask._id}`, dataToSend, {
+        headers: {
+          Authorization: `Bearer ${authToken}`
         }
-        return member;
       });
-      
-      setProject(prev => ({ ...prev, teamMembers: updatedTeamMembers }));
+      toast.success("✅ Task updated successfully!");
+    } else {
+      // ✅ Create new task
+      await axios.post(`/tasks/create`, dataToSend, {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+      toast.success("✅ Task created successfully!");
     }
-  };
+
+    // ✅ Refetch tasks after update/create (fetch only for current project)
+    const taskRes = await axios.get(`/tasks?projectId=${project._id}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    console.log("Fetched tasks:", taskRes.data.tasks);
+    setTasks(taskRes.data.tasks);
+
+    // ✅ Refetch updated project data
+    if (project?.id) {
+      const projectRes = await axios.get(`/projects/${project.id}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      setProject(projectRes.data);
+    }
+
+    // ✅ Close modal
+    setIsModalOpen(false);
+
+    // ✅ Scroll to task section
+    setTimeout(() => {
+      const taskSection = document.getElementById("task-section");
+      if (taskSection) {
+        taskSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+
+  } catch (error) {
+    console.error("❌ Error saving task:", error);
+    toast.error(error?.response?.data?.message || "❌ Failed to save task. Please try again.");
+  }
+};
+  const handleStatusChange = async (taskId, newStatus) => {
+  const authToken = localStorage.getItem('Token');
+  try {
+    // Update task status in backend
+    await axios.patch(`/tasks/${taskId}`, { status: newStatus }, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+
+    // Refetch tasks for the current project
+    const taskRes = await axios.get(`/tasks?projectId=${project._id}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    setTasks(taskRes.data.tasks);
+
+    // Optionally, refetch project data if needed
+    // const projectRes = await axios.get(`/projects/${project._id}`, {
+    //   headers: { Authorization: `Bearer ${authToken}` }
+    // });
+    // setProject(projectRes.data);
+
+  } catch (error) {
+    console.error("❌ Error updating task status:", error);
+    toast.error(error?.response?.data?.message || "❌ Failed to update task status");
+  }
+};
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -919,11 +908,6 @@ useEffect(() => {
     'Completed': tasks.filter(task => task.status === 'Completed'),
     'Blocked': tasks.filter(task => task.status === 'Blocked')
   };
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  onSave(formData); // Send data to parent
-};
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e1e1e] to-[#121212] text-white transition-colors duration-300">
@@ -1108,7 +1092,7 @@ useEffect(() => {
 
             {/* Tasks Tab Content */}
             {activeTab === 'tasks' && (
-              <>
+              <div>
                 {/* Filters and Search */}
                 <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg mb-8">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
@@ -1123,7 +1107,6 @@ useEffect(() => {
                         {isFilterExpanded ? <FaChevronUp className="ml-2" /> : <FaChevronDown className="ml-2" />}
                       </button>
                     </div>
-                    
                     <div className="relative w-full md:w-64">
                       <input
                         type="text"
@@ -1143,7 +1126,7 @@ useEffect(() => {
                       exit={{ opacity: 0, height: 0 }}
                       className="pt-4 border-t border-gray-700"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
                           <select
@@ -1169,7 +1152,7 @@ useEffect(() => {
                           >
                             <option value="All">All Team Members</option>
                             {project?.teamMembers.map(member => (
-                              <option key={member.id} value={member.id}>{member.name}</option>
+                              <option key={member._id} value={member._id}>{member.name}</option>
                             ))}
                           </select>
                         </div>
@@ -1209,10 +1192,10 @@ useEffect(() => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredTasks.map(task => (
                       <TaskCard 
-                        key={task.id}
+                        key={task._id}
                         task={task}
                         onEdit={handleEditTask}
-                        onDelete={handleDeleteTask}
+                        onDelete={() => handleDeleteTask(task._id)}
                         onStatusChange={handleStatusChange}
                       />
                     ))}
@@ -1230,7 +1213,7 @@ useEffect(() => {
                     </button>
                   </div>
                 )}
-              </>
+             </div>
             )}
 
             {/* Team Tab Content */}
@@ -1238,7 +1221,7 @@ useEffect(() => {
               <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {project?.teamMembers.map(member => (
-                    <TeamMemberCard key={member.id} member={member} />
+                    <TeamMemberCard key={member._id} member={member} />
                   ))}
                 </div>
               </div>
@@ -1322,15 +1305,15 @@ useEffect(() => {
                              e.preventDefault();
                              e.currentTarget.classList.remove('bg-opacity-70');
                              const taskId = e.dataTransfer.getData('taskId');
-                             handleStatusChange(parseInt(taskId), status);
+                             handleStatusChange(taskId, status);
                            }}
                       >
                         {statusTasks.length > 0 ? (
                           <div className="space-y-3">
                             {statusTasks.map(task => (
                               <motion.div
-                                key={task.id}
-                                layoutId={`task-${task.id}`}
+                                key={task._id}
+                                layoutId={`task-${task._id}`}
                                 whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)' }}
                                 className={`p-4 rounded-lg cursor-pointer shadow-md ${status === 'To Do' ? 'bg-gray-800 border-l-4 border-gray-500' : 
                                                                                     status === 'In Progress' ? 'bg-gray-800 border-l-4 border-blue-500' : 
@@ -1340,7 +1323,7 @@ useEffect(() => {
                                 onClick={() => handleEditTask(task)}
                                 draggable
                                 onDragStart={(e) => {
-                                  e.dataTransfer.setData('taskId', task.id.toString());
+                                  e.dataTransfer.setData('taskId', task._id.toString());
                                 }}
                               >
                                 <div className="flex justify-between items-start mb-2">
@@ -1444,8 +1427,6 @@ useEffect(() => {
                 </div>
               </div>
             )}
-
-            {/* Task Form Modal */}
            <AnimatePresence>
   {isModalOpen && (
     <TaskFormModal

@@ -9,6 +9,8 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 // Add CSS class for system fonts and background patterns
 const backgroundCSS = `
@@ -56,13 +58,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.title || !formData.date) {
+      toast.error('Please fill in all required fields.');
+      return;
+    }
     onSave(formData);
     onClose();
   };
 
   const handleDelete = () => {
     if (confirmDelete) {
-      onDelete(event.id);
+      onDelete(event._id); // Use _id instead of id
       onClose();
     } else {
       setConfirmDelete(true);
@@ -198,6 +204,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
             <select
               name="reminder"
               value={formData.reminder}
+              
               onChange={handleChange}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -346,89 +353,25 @@ export default function Calendar() {
   
   // Fetch events (mock data for now)
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      // Mock events data
-      const mockEvents = [
-        {
-          id: 1,
-          title: 'Team Meeting',
-          description: 'Weekly team sync to discuss project progress',
-          date: '2023-07-15',
-          startTime: '10:00',
-          endTime: '11:00',
-          type: 'meeting',
-          priority: 'medium',
-          participants: ['John Doe', 'Jane Smith', 'Mike Johnson'],
-          location: 'Conference Room A',
-          reminder: '15'
-        },
-        {
-          id: 2,
-          title: 'Project Deadline',
-          description: 'Final submission for the website redesign project',
-          date: '2023-07-20',
-          startTime: '',
-          endTime: '',
-          type: 'deadline',
-          priority: 'high',
-          participants: [],
-          location: '',
-          reminder: '1440'
-        },
-        {
-          id: 3,
-          title: 'Client Call',
-          description: 'Discussion about new requirements',
-          date: '2023-07-18',
-          startTime: '14:00',
-          endTime: '15:00',
-          type: 'meeting',
-          priority: 'medium',
-          participants: ['John Doe', 'Client'],
-          location: 'Zoom',
-          reminder: '30'
-        },
-        {
-          id: 4,
-          title: 'Review Designs',
-          description: 'Review and approve the new UI designs',
-          date: '2023-07-16',
-          startTime: '11:00',
-          endTime: '12:00',
-          type: 'task',
-          priority: 'medium',
-          participants: ['John Doe', 'Design Team'],
-          location: 'Design Lab',
-          reminder: '60'
-        },
-        {
-          id: 5,
-          title: 'Backend Deployment',
-          description: 'Deploy the new backend services to production',
-          date: '2023-07-25',
-          startTime: '09:00',
-          endTime: '10:00',
-          type: 'task',
-          priority: 'high',
-          participants: ['John Doe', 'DevOps Team'],
-          location: '',
-          reminder: '60'
-        }
-      ];
-      
-      // Update today's date to current year/month for demo purposes
-      const today = new Date();
-      mockEvents.forEach(event => {
-        const eventDate = new Date(event.date);
-        eventDate.setFullYear(today.getFullYear());
-        eventDate.setMonth(today.getMonth());
-        event.date = eventDate.toISOString().split('T')[0];
-      });
-      
-      setEvents(mockEvents);
-      setLoading(false);
-    }, 1000);
+    const fetchEvents = async () => {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      try {
+        const response = await axios.get('http://localhost:5000/api/events', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        toast.error('Failed to fetch events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
   }, []);
   
   // Get days in month grid (including days from prev/next month to fill the grid)
@@ -520,26 +463,69 @@ export default function Calendar() {
     setIsModalOpen(true);
   };
   
-  // Save event (create or update)
-  const handleSaveEvent = (eventData) => {
-    if (currentEvent) {
-      // Update existing event
-      setEvents(prev => prev.map(event => 
-        event.id === currentEvent.id ? { ...eventData, id: event.id } : event
-      ));
-    } else {
-      // Create new event
-      const newEvent = {
-        ...eventData,
-        id: Date.now() // Simple ID generation
-      };
-      setEvents(prev => [...prev, newEvent]);
-    }
+
+
+const API_BASE_URL = 'http://localhost:5000/api/events';
+
+const handleSaveEvent = async (eventData) => {
+  const token = localStorage.getItem('token'); // Or whatever your key is
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   };
+
+  // Ensure reminder is a number
+  let eventDataToSend = {
+    ...eventData,
+    reminder: Number(eventData.reminder)
+  };
+
+  // Remove _id from update payload to avoid MongoDB immutable field error
+  if (currentEvent) {
+    const { _id, ...rest } = eventDataToSend;
+    eventDataToSend = rest;
+  }
+
+  try {
+    if (currentEvent) {
+      // 🔄 Update existing event
+      const response = await axios.put(`${API_BASE_URL}/${currentEvent._id}`, eventDataToSend, config);
+      setEvents(prev =>
+        prev.map(event =>
+          event._id === currentEvent._id ? response.data : event
+        )
+      );
+      toast.success('Event updated successfully!');
+    } else {
+      // ➕ Create new event
+      console.log('Creating new event:', eventData);
+      const response = await axios.post(API_BASE_URL, eventData, config);
+      setEvents(prev => [...prev, response.data]);
+      toast.success('Event created successfully!');
+    }
+
+    setCurrentEvent(null);
+    setIsModalOpen(false);
+  } catch (error) {
+    console.error('Error saving event:', error.response?.data || error);
+    toast.error(error.response?.data?.message || 'Something went wrong while saving the event.');
+  }
+};
   
   // Delete event
-  const handleDeleteEvent = (eventId) => {
-    setEvents(prev => prev.filter(event => event.id !== eventId));
+  const handleDeleteEvent = async (eventId) => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(`${API_BASE_URL}/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEvents(prev => prev.filter(event => event._id !== eventId));
+      toast.success('Event deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting event:', error.response?.data || error);
+      toast.error(error.response?.data?.message || 'Failed to delete event.');
+    }
   };
   
   // Filter events based on search term, type, and priority
@@ -748,7 +734,7 @@ export default function Calendar() {
                 <div className="space-y-3">
                   {selectedDateEvents.map(event => (
                     <div 
-                      key={event.id}
+                      key={event._id}
                       onClick={() => handleEditEvent(event)}
                       className="p-3 bg-gray-700 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors"
                     >
@@ -801,7 +787,7 @@ export default function Calendar() {
                 <div className="space-y-3">
                   {upcomingEvents.slice(0, 5).map(event => (
                     <div 
-                      key={event.id}
+                      key={event._id}
                       onClick={() => handleEditEvent(event)}
                       className="p-3 bg-gray-700 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors"
                     >

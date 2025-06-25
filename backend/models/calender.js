@@ -1,12 +1,51 @@
-import mongoose from 'mongoose';
-const { Schema, model, Types } = mongoose;
+const mongoose = require('mongoose');
 
-const CalendarSchema = new Schema({
-  date: { type: Number, required: true }, // You might want to use Date instead
-  description: { type: String, required: true },
-  created_by: { type: Types.ObjectId, ref: 'User', required: true }
+const eventSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['meeting', 'deadline', 'task', 'event', 'reminder'], // Accept lowercase
+    required: true,
+  },
+  startTime: {
+    type: String, // You can also use Date if combining date+time
+    required: true,
+  },
+  endTime: {
+    type: String,
+    required: true,
+  },
+  priority: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'urgent'], // Accept lowercase
+    default: 'medium',
+  },
+  location: {
+    type: String,
+    trim: true,
+  },
+  reminder: {
+    type: Number, // Store as minutes before
+    default: 15,
+  },
+  participants: {
+    type: [String], // Array of participant names or IDs
+    default: [],
+  },
 }, {
-  timestamps: true // adds createdAt and updatedAt automatically
+  timestamps: true, // Automatically adds createdAt and updatedAt
 });
 
-export default model('Event', CalendarSchema);
+module.exports = mongoose.model('Event', eventSchema);
