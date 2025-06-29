@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Import the common Navbar component
 import Navbar from '../../components/Navbar';
+import SmartStressMonitor from '../../components/StressMonitor';
 
 // Add CSS class for system fonts and background patterns
 // This ensures we use system fonts instead of SF Pro fonts
@@ -66,82 +67,7 @@ const Loader = () => (
 );
 
 // StressMonitor Component with optimized classes
-const StressMonitor = () => {
-  const stressLevel = 65;
-  const needleRotation = (stressLevel / 100) * 180;
-  
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={styles.card}
-      whileHover={{ scale: 1.02 }}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
-          <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg mr-3">
-            <FaHeartbeat className="text-red-500 dark:text-red-400" />
-          </div>
-          Stress Monitor
-        </h3>
-        <button className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
-          <FaEllipsisH />
-        </button>
-      </div>
-      
-      <div className="flex flex-col items-center justify-center h-[calc(100%-4rem)]">
-        <div className="relative w-56 h-28 mb-8">
-          {/* Semicircle background with better gradient and border */}
-          <div className="absolute w-full h-full rounded-t-full overflow-hidden bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600">
-            <div className="absolute w-full h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 opacity-60 dark:opacity-50"></div>
-          </div>
-          
-          {/* Tick marks - more detailed */}
-          <div className="absolute w-full h-full">
-            {[0, 30, 60, 90, 120, 150, 180].map((deg) => (
-              <div 
-                key={deg}
-                className="absolute bottom-0 w-1 h-3 bg-gray-400 dark:bg-gray-500"
-                style={{ 
-                  left: `${(deg/180) * 100}%`, 
-                  transform: `translateX(-50%) rotate(${deg-90}deg)`,
-                  transformOrigin: 'bottom'
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Needle with better styling */}
-          <div 
-            className="absolute top-0 left-1/2 w-1.5 h-24 bg-blue-600 dark:bg-blue-400 origin-bottom transform -translate-x-1/2 transition-transform duration-1000 ease-elastic shadow-md"
-            style={{ transform: `translateX(-50%) rotate(${needleRotation - 90}deg)` }}
-          >
-            <div className="w-4 h-4 rounded-full bg-blue-600 dark:bg-blue-400 absolute -top-2 -left-1.5 shadow-lg border-2 border-white dark:border-gray-800"></div>
-          </div>
-          
-          {/* Center point - larger and with border */}
-          <div className="absolute bottom-0 left-1/2 w-6 h-6 bg-blue-600 dark:bg-blue-500 rounded-full transform -translate-x-1/2 shadow-md border-2 border-white dark:border-gray-800"></div>
-          
-          {/* Labels with better positioning and styling */}
-          <div className="absolute -bottom-6 left-0 w-full flex justify-between px-2">
-            <span className="text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">Low</span>
-            <span className="text-sm text-red-600 dark:text-red-400 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">High</span>
-          </div>
-        </div>
-        
-        <div className="text-center bg-gray-50 dark:bg-gray-700/50 px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-600">
-          <div className="text-3xl font-bold mb-1">
-            <span className={`${stressLevel < 30 ? 'text-green-600 dark:text-green-400' : stressLevel < 70 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'}`}>
-              {stressLevel}%
-            </span>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Team Stress Level</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+
 
 // Today's Tasks Component
 const TodaysTasks = () => {
@@ -1090,7 +1016,7 @@ function Dashboard() {
                   <TodaysTasks />
                 </div>
                 <div className="lg:col-span-3"> {/* Approximately 3/8 of the width */}
-                  <StressMonitor />
+                  <SmartStressMonitor />
                 </div>
               </div>
               

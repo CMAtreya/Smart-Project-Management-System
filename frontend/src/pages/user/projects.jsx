@@ -71,6 +71,8 @@ const ProjectCard = ({ project, onViewDetails }) => {
     'Completed': 'bg-green-500',
     'Cancelled': 'bg-red-500'
   };
+    const navigate = useNavigate();
+
 
   const priorityColors = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -187,7 +189,7 @@ const ProjectCard = ({ project, onViewDetails }) => {
           View Details <FaArrowRight className="ml-2" />
         </button>
         <button
-          onClick={() => navigate('/user/project-architecture')}
+          onClick={() => navigate('/user/projectarch')}
           className="w-full mt-2 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center transition-colors"
           aria-label="View project architecture"
         >
@@ -497,6 +499,8 @@ function Projects() {
   const { user } = useAuth(); // Get user from context
   const { fetchUserProjects } = useProject(); // Get fetchUserProjects from context
   const location = useLocation();
+    const navigate = useNavigate();
+
   
   // Add the CSS styles to the document
   useEffect(() => {
@@ -531,7 +535,6 @@ function Projects() {
     fetchProjectsForUser();
   }, [user, fetchUserProjects, location]);
 
-  const navigate = useNavigate();
 
   const handleViewDetails = (projectId) => {
     navigate('/user/tasks', { state: { projectId } });

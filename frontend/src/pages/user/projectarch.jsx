@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Navbar from '../../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 // Mock navigate function since we don't have react-router-dom
 const mockNavigate = (path) => {
@@ -92,17 +94,6 @@ const XMark = () => (
 );
 
 // Simple Navbar component since it's not provided
-const Navbar = () => (
-  <nav className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3">
-    <div className="flex items-center justify-between max-w-6xl mx-auto">
-      <h2 className="text-white font-bold text-lg">Project Dashboard</h2>
-      <div className="flex space-x-4">
-        <span className="text-gray-300 text-sm">Welcome, User</span>
-      </div>
-    </div>
-  </nav>
-);
-
 const phases = [
 	{
 		key: 'communication',
@@ -191,8 +182,8 @@ const statusIcons = {
 };
 
 export default function ProjectArchitecture() {
-	const navigate = mockNavigate;
-	const [hovered, setHovered] = useState(null);
+  const navigate = useNavigate();
+  const [hovered, setHovered] = useState(null);
 
 	return (
 		<>
