@@ -3,6 +3,7 @@ const router = express.Router();
 const Task = require('../models/Task');
 const Project = require('../models/Project');
 const { authenticateUser } = require('../middleware/auth');
+const User = require('../models/User.js');
 
 // Apply authentication middleware to all routes
 router.use(authenticateUser);

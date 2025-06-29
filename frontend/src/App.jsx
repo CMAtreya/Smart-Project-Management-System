@@ -16,6 +16,7 @@ import Projects from './pages/admin/projects';
 import Tasks from './pages/admin/tasks';
 import CAlendar from './pages/admin/calendar';
 import Analytics from './pages/admin/analytics';
+import Projectarchitecture from './pages/admin/projectarch';
 import AdminProfile from './pages/admin/profile';
 
 // User Pages
@@ -28,6 +29,7 @@ import UserProjects from './pages/user/projects';
 import Calendar from './pages/user/calendar';
 import UserTasks from './pages/user/UserTasks';
 import UserProfile from './pages/user/profile';
+import ProjectArchitecture from './pages/user/projectarch';
 
 // Shared Layout Component for both Admin and User
 const SharedLayout = () => {
@@ -59,6 +61,8 @@ export default function App() {
           <Route path="/admin/calendar" element={<CAlendar />} />
           <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
+           <Route path="/admin/project-architecture" element={<Projectarchitecture />} />
+
         </Route>
 
         {/* User Routes with Layout */}
@@ -72,6 +76,7 @@ export default function App() {
           <Route path="/user/calendar" element={<Calendar />} />
           <Route path="/user/tasks" element={<UserTasks />} />
           <Route path="/user/profile" element={<UserProfile />} />
+          <Route path="/user/project-architecture" element={<ProjectArchitecture />} />
         </Route>
         
         {/* Catch all route */}

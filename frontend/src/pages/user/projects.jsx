@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom'; 
+import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import { toast } from 'react-toastify';
 import {
   FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
@@ -12,6 +12,8 @@ import {
   FaExclamationTriangle, FaHourglassHalf, FaLink, FaExternalLinkAlt, FaCircle
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProject } from '../../contexts/ProjectContext';
+import axios from 'axios';
 
 // Add CSS class for system fonts and background patterns
 const backgroundCSS = `
@@ -183,6 +185,13 @@ const ProjectCard = ({ project, onViewDetails }) => {
           aria-label="View project details"
         >
           View Details <FaArrowRight className="ml-2" />
+        </button>
+        <button
+          onClick={() => navigate('/user/project-architecture')}
+          className="w-full mt-2 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center transition-colors"
+          aria-label="View project architecture"
+        >
+          Project Architecture
         </button>
       </div>
     </motion.div>
@@ -485,6 +494,9 @@ function Projects() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const { user } = useAuth(); // Get user from context
+  const { fetchUserProjects } = useProject(); // Get fetchUserProjects from context
+  const location = useLocation();
   
   // Add the CSS styles to the document
   useEffect(() => {
@@ -500,158 +512,24 @@ function Projects() {
   }, []);
   
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjectsForUser = async () => {
+      setLoading(true); // Ensure loading state is set on user change
+      if (!user || !user._id) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
       try {
-        // In a real app, you would call an API to fetch projects assigned to the user
-        // For now, we'll use mock data
-        setTimeout(() => {
-          const mockProjects = [
-            {
-              id: 1,
-              title: 'E-commerce Website Redesign',
-              description: 'Redesign the company e-commerce website with modern UI/UX principles',
-              startDate: '2023-06-01',
-              endDate: '2023-07-15',
-              priority: 'High',
-              status: 'In Progress',
-              progress: 65,
-              teamMembers: [
-                { name: 'John Doe', role: 'Frontend Developer' },
-                { name: 'Jane Smith', role: 'UI/UX Designer' },
-                { name: 'Mike Johnson', role: 'Backend Developer' },
-                { name: 'Sarah Williams', role: 'Project Manager' }
-              ],
-              tasks: [
-                {
-                  id: 101,
-                  title: 'Design Homepage Mockup',
-                  description: 'Create a modern homepage design with improved user experience',
-                  priority: 'High',
-                  status: 'Completed',
-                  dueDate: '2023-06-10',
-                  assignedTo: ['Jane Smith']
-                },
-                {
-                  id: 102,
-                  title: 'Implement Responsive Navigation',
-                  description: 'Create a responsive navigation menu that works on all devices',
-                  priority: 'Medium',
-                  status: 'In Progress',
-                  dueDate: '2023-06-20',
-                  assignedTo: ['John Doe']
-                },
-                {
-                  id: 103,
-                  title: 'Setup Product Database',
-                  description: 'Design and implement the product database schema',
-                  priority: 'High',
-                  status: 'To Do',
-                  dueDate: '2023-06-25',
-                  assignedTo: ['Mike Johnson']
-                }
-              ]
-            },
-            {
-              id: 2,
-              title: 'Mobile App Development',
-              description: 'Develop a cross-platform mobile app for customer engagement',
-              startDate: '2023-05-15',
-              endDate: '2023-08-30',
-              priority: 'Medium',
-              status: 'In Progress',
-              progress: 40,
-              teamMembers: [
-                { name: 'Alex Turner', role: 'Mobile Developer' },
-                { name: 'Emily Davis', role: 'UI/UX Designer' },
-                { name: 'Ryan Wilson', role: 'Backend Developer' }
-              ],
-              tasks: [
-                {
-                  id: 201,
-                  title: 'Design App Wireframes',
-                  description: 'Create wireframes for all app screens',
-                  priority: 'High',
-                  status: 'Completed',
-                  dueDate: '2023-05-30',
-                  assignedTo: ['Emily Davis']
-                },
-                {
-                  id: 202,
-                  title: 'Implement User Authentication',
-                  description: 'Create secure user authentication system',
-                  priority: 'High',
-                  status: 'In Progress',
-                  dueDate: '2023-06-15',
-                  assignedTo: ['Ryan Wilson']
-                }
-              ]
-            },
-            {
-              id: 3,
-              title: 'Marketing Campaign',
-              description: 'Plan and execute Q3 digital marketing campaign',
-              startDate: '2023-07-01',
-              endDate: '2023-09-30',
-              priority: 'Low',
-              status: 'Not Started',
-              progress: 0,
-              teamMembers: [
-                { name: 'Lisa Brown', role: 'Marketing Specialist' },
-                { name: 'David Clark', role: 'Content Writer' },
-                { name: 'Sarah Williams', role: 'Project Manager' }
-              ],
-              tasks: [
-                {
-                  id: 301,
-                  title: 'Market Research',
-                  description: 'Conduct market research to identify target audience',
-                  priority: 'Medium',
-                  status: 'To Do',
-                  dueDate: '2023-07-15',
-                  assignedTo: ['Lisa Brown']
-                }
-              ]
-            },
-            {
-              id: 4,
-              title: 'CRM System Integration',
-              description: 'Integrate new CRM system with existing company infrastructure',
-              startDate: '2023-06-15',
-              endDate: '2023-08-15',
-              priority: 'Urgent',
-              status: 'In Progress',
-              progress: 25,
-              teamMembers: [
-                { name: 'Mike Johnson', role: 'Backend Developer' },
-                { name: 'Ryan Wilson', role: 'Backend Developer' },
-                { name: 'Sarah Williams', role: 'Project Manager' }
-              ],
-              tasks: [
-                {
-                  id: 401,
-                  title: 'Data Migration Plan',
-                  description: 'Create a plan for migrating data to the new CRM',
-                  priority: 'High',
-                  status: 'In Progress',
-                  dueDate: '2023-06-30',
-                  assignedTo: ['Mike Johnson', 'Ryan Wilson']
-                }
-              ]
-            }
-          ];
-          
-          setProjects(mockProjects);
-          setLoading(false);
-        }, 1000);
+        const projectsArr = await fetchUserProjects(user._id);
+        setProjects(projectsArr);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching projects:', error);
-        toast.error('Failed to load projects');
+        setProjects([]);
         setLoading(false);
       }
     };
-    
-    fetchProjects();
-  }, []);
+    fetchProjectsForUser();
+  }, [user, fetchUserProjects, location]);
 
   const navigate = useNavigate();
 
@@ -821,9 +699,9 @@ function Projects() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredProjects.map((project) => (
                           <ProjectCard
-                            key={project.id}
+                            key={project._id}
                             project={project}
-                            onViewDetails={handleViewDetails}
+                            onViewDetails={() => handleViewDetails(project._id)}
                           />
                         ))}
                       </div>

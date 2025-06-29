@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const user = require('./User'); // Ensure you have a User model
+const projects = require('./Project'); // Ensure you have a Project model
 
 const TaskSchema = new mongoose.Schema({
   title: {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const user = require('./User'); // Assuming you have a User model
 
 const projectSchema = new mongoose.Schema({
   title: {

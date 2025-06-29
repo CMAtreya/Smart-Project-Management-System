@@ -28,8 +28,10 @@ export const ProjectProvider = ({ children }) => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/projects');
-      setProjects(response.data);
+        const response = await axios.get('/projects');
+      // Ensure projects is always an array
+      const data = Array.isArray(response.data) ? response.data : (response.data.projects || []);
+      setProjects(data);
       setError(null);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -42,7 +44,7 @@ export const ProjectProvider = ({ children }) => {
 
   const getProject = async (projectId) => {
     try {
-      const response = await axios.get(`/api/projects/${projectId}`);
+      const response = await axios.get(`/projects/${projectId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -53,10 +55,17 @@ export const ProjectProvider = ({ children }) => {
 
   const createProject = async (projectData) => {
     try {
-      const response = await axios.post('/api/projects', projectData);
-      setProjects([...projects, response.data]);
+      console.log(" this is called to create project ");
+      const response = await axios.post('/projects/create', projectData);
+      // Support both { project: ... } and direct object
+      const createdProject = response.data.project || response.data;
+      if (!createdProject._id) {
+        throw new Error('Project creation failed: No project ID returned from backend.');
+      }
+      // Remove addTeamMember loop: backend should handle teamMembers on creation
+      setProjects([...projects, createdProject]);
       toast.success('Project created successfully');
-      return response.data;
+      return createdProject;
     } catch (error) {
       console.error('Error creating project:', error);
       toast.error('Failed to create project');
@@ -66,12 +75,14 @@ export const ProjectProvider = ({ children }) => {
 
   const updateProject = async (projectId, projectData) => {
     try {
-      const response = await axios.put(`/api/projects/${projectId}`, projectData);
+      const response = await axios.patch(`/projects/${projectId}`, projectData);
+      // Support both { project: ... } and direct object
+      const updatedProject = response.data.project || response.data;
       setProjects(projects.map(project => 
-        project._id === projectId ? response.data : project
+        project._id === projectId ? updatedProject : project
       ));
       toast.success('Project updated successfully');
-      return response.data;
+      return updatedProject;
     } catch (error) {
       console.error('Error updating project:', error);
       toast.error('Failed to update project');
@@ -81,7 +92,7 @@ export const ProjectProvider = ({ children }) => {
 
   const deleteProject = async (projectId) => {
     try {
-      await axios.delete(`/api/projects/${projectId}`);
+      await axios.delete(`/projects/${projectId}`);
       setProjects(projects.filter(project => project._id !== projectId));
       toast.success('Project deleted successfully');
     } catch (error) {
@@ -93,7 +104,8 @@ export const ProjectProvider = ({ children }) => {
 
   const addTeamMember = async (projectId, userId) => {
     try {
-      const response = await axios.post(`/api/projects/${projectId}/team`, { userId });
+      console.log(" this is called to add memebers ")
+      const response = await axios.post(`/projects/${projectId}/team`, { userId });
       setProjects(projects.map(project => 
         project._id === projectId ? response.data : project
       ));
@@ -108,7 +120,7 @@ export const ProjectProvider = ({ children }) => {
 
   const removeTeamMember = async (projectId, userId) => {
     try {
-      const response = await axios.delete(`/api/projects/${projectId}/team/${userId}`);
+      const response = await axios.delete(`/projects/${projectId}/team/${userId}`);
       setProjects(projects.map(project => 
         project._id === projectId ? response.data : project
       ));
@@ -123,7 +135,7 @@ export const ProjectProvider = ({ children }) => {
 
   const updateProjectStatus = async (projectId, status) => {
     try {
-      const response = await axios.patch(`/api/projects/${projectId}/status`, { status });
+      const response = await axios.patch(`/projects/${projectId}/status`, { status });
       setProjects(projects.map(project => 
         project._id === projectId ? response.data : project
       ));
@@ -133,6 +145,39 @@ export const ProjectProvider = ({ children }) => {
       console.error('Error updating project status:', error);
       toast.error('Failed to update project status');
       throw error;
+    }
+  };
+
+  // Fetch all users for team member selection
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get('/auth/all-users');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+      throw error;
+    }
+  };
+
+  // Fetch projects for a specific user
+  const fetchUserProjects = async (userId) => {
+    try {
+      const usertoken = localStorage.getItem("token");
+      const response = await axios.get(`/projects/user/${userId}`, {
+        headers: {
+          Authorization: usertoken
+        }
+      });
+      // Ensure response is an array and fallback to []
+      const projectsArr = Array.isArray(response.data.projects)
+        ? response.data.projects
+        : (Array.isArray(response.data) ? response.data : []);
+      return projectsArr;
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+      toast.error('Failed to load user projects');
+      return [];
     }
   };
 
@@ -147,7 +192,9 @@ export const ProjectProvider = ({ children }) => {
     deleteProject,
     addTeamMember,
     removeTeamMember,
-    updateProjectStatus
+    updateProjectStatus,
+    fetchUsers, // <-- add fetchUsers to context value
+    fetchUserProjects // <-- add fetchUserProjects to context value
   };
 
   return (

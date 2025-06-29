@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const user = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_LIFETIME = process.env.JWT_LIFETIME || '30d';
@@ -18,25 +18,25 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Invalid role' });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await user.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({ name, email, password, role });
+    const newUser = await user.create({ name, email, password, role });
 
     const token = jwt.sign(
-      { userId: user._id, name: user.name, role: user.role },
+      { userId: newUser._id, name: newUser.name, role: newUser.role },
       JWT_SECRET,
       { expiresIn: JWT_LIFETIME }
     );
 
     res.status(201).json({
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
       },
       token
     });
@@ -50,35 +50,35 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password, role, adminSecretKey } = req.body || {};
     console.log('Login Request Body:', req.body);
-    console.log('adminSecretKey from req:', adminSecretKey);
-    console.log('ADMIN_SECRET_KEY from env:', process.env.ADMIN_SECRET_KEY);
+  
 
     if (role === 'admin' && adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
       return res.status(403).json({ message: 'Invalid admin secret key' });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    const foundUser = await user.findOne({ email });
+    if (!foundUser) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const isPasswordCorrect = await user.comparePassword(password);
+    const isPasswordCorrect = await foundUser.comparePassword(password);
     if (!isPasswordCorrect) return res.status(401).json({ message: 'Invalid credentials' });
 
-    if (user.role !== role) {
+    if (foundUser.role !== role) {
       return res.status(403).json({ message: 'Role mismatch. Access denied.' });
     }
 
     const token = jwt.sign(
-      { userId: user._id, name: user.name, role: user.role },
+      { userId: foundUser._id, name: foundUser.name, role: foundUser.role },
       JWT_SECRET,
       { expiresIn: JWT_LIFETIME }
     );
-
+    console.log('response:', res);
+    console.log('Login successful for user:', foundUser.email);
     res.status(200).json({
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: foundUser._id,
+        name: foundUser.name,
+        email: foundUser.email,
+        role: foundUser.role
       },
       token
     });
@@ -99,12 +99,12 @@ router.get('/me', async (req, res) => {
     const token = authHeader.split(' ')[1];
     const payload = jwt.verify(token, JWT_SECRET);
 
-    const user = await User.findById(payload.userId).select('-password');
-    if (!user) {
+    const foundUser = await user.findById(payload.userId).select('-password');
+    if (!foundUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({ user });
+    res.status(200).json({ user: foundUser });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Something went wrong', error: error.message });
@@ -113,7 +113,7 @@ router.get('/me', async (req, res) => {
 // GET ALL NON-ADMIN USERS
 router.get('/all-users', async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' }, 'name email role'); // Only users with role 'user'
+    const users = await user.find({ role: 'user' }, 'name email role'); // Only users with role 'user'
     res.status(200).json(users);
   } catch (error) {
     console.error('Fetch users error:', error);

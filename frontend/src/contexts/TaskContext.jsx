@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
@@ -19,13 +19,8 @@ export const TaskProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchTasks();
-    }
-  }, [user]);
-
-  const fetchTasks = async (filters = {}) => {
+  // Wrap fetchTasks in useCallback
+  const fetchTasks = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams(filters).toString();
@@ -39,7 +34,13 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user, fetchTasks]);
 
   const getTask = async (taskId) => {
     try {

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const { authenticateUser } = require('../middleware/auth');
-const User = require('../models/User'); // ✅ Make sure this is added
+const User = require('../models/User.js'); // ✅ Make sure this is added
 
 router.use(authenticateUser);
 
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const projects = await Project.find(query)
-      .populate('team', 'name members')
+      .populate('teamMembers', 'name role')
       .populate('createdBy', 'name email')
       .sort(sort)
       .skip(skip)
@@ -80,6 +80,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/projects
+// POST /api/projects
 router.post('/create', async (req, res) => {
   try {
     const {
@@ -111,10 +112,9 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ message: 'End date must be after start date' });
     }
 
-    // Extract only the user IDs
-    const teamMemberIds = teamMembers.map(member => member._id);
+    // Use teamMembers directly, since frontend sends array of user IDs
+    const teamMemberIds = teamMembers;
 
-    // Attach creator (assuming middleware added req.user)
     req.body.createdBy = req.user?.userId || null;
 
     const project = await Project.create({
@@ -129,8 +129,22 @@ router.post('/create', async (req, res) => {
       createdBy: req.body.createdBy
     });
 
+    // ✅ Update each user's `projects` array with this new project ID
+    await User.updateMany(
+      { _id: { $in: teamMemberIds } },
+      { $addToSet: { projects: project._id } } // avoid duplicates
+    );
+
+    // ✅ Also update the creator’s project list (if not already in teamMembers)
+    if (req.body.createdBy && !teamMemberIds.includes(req.body.createdBy)) {
+      await User.findByIdAndUpdate(
+        req.body.createdBy,
+        { $addToSet: { projects: project._id } }
+      );
+    }
+
     const populatedProject = await Project.findById(project._id)
-      .populate('teamMembers', 'name email role')
+      .populate('teamMembers', 'name email')
       .populate('createdBy', 'name email');
 
     res.status(201).json({ project: populatedProject });
@@ -140,6 +154,7 @@ router.post('/create', async (req, res) => {
     res.status(500).json({ message: 'Failed to create project', error: error.message });
   }
 });
+
 
 
 // PATCH /api/projects/:id
@@ -239,13 +254,27 @@ router.patch('/:id/progress', async (req, res) => {
     await project.save();
 
     const updatedProject = await Project.findById(project._id)
-      .populate('team', 'name members')
+      .populate('teamMembers', 'name email')
       .populate('createdBy', 'name email');
 
     res.status(200).json({ project: updatedProject });
   } catch (error) {
     console.error('Update progress error:', error);
     res.status(500).json({ message: 'Failed to update progress', error: error.message });
+  }
+});
+
+// GET /api/projects/user/:userId - Get projects where user is a team member
+router.get('/user/:userId', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const projects = await Project.find({ teamMembers: userId })
+      .populate('teamMembers', 'name role')
+      .populate('createdBy', 'name email');
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error('Fetch user projects error:', error);
+    res.status(500).json({ message: 'Failed to fetch user projects' });
   }
 });
 

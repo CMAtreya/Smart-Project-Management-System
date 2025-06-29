@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom'; 
 import { toast } from 'react-toastify';
 
-import axios from 'axios'
-import{
+import {
   FaTasks, FaChartBar, FaCalendarAlt, FaUser, FaSignOutAlt, 
   FaBell, FaSearch, FaEllipsisH, FaCircleNotch, FaCheckCircle,
   FaRegClock, FaExclamationCircle, FaFilter, FaPlus, FaTrash, FaPencilAlt,
@@ -14,6 +13,7 @@ import{
   FaUserFriends
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProject } from '../../contexts/ProjectContext';
 import Navbar from '../../components/Navbar';
 
 // Add CSS class for system fonts and background patterns
@@ -57,7 +57,7 @@ const Loader = () => (
 );
 
 // Project Card Component
-const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
+const ProjectCard = ({ project, onViewDetails, onEdit, onDelete, onChat, navigate }) => {
   const statusColors = {
     'Not Started': 'bg-gray-500',
     'In Progress': 'bg-blue-500',
@@ -125,14 +125,14 @@ const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
           >
             <FaEdit />
           </button>
-          <Link 
-            to="/admin/chatpage"
+          <button 
+            onClick={() => onChat(project)}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-green-400 hover:text-green-300 transition-colors"
           >
             <FaUserFriends />
-          </Link>
+          </button>
           <button 
-            onClick={() => onDelete(project.id)}
+            onClick={() => onDelete(project._id)}
             className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-red-400 hover:text-red-300 transition-colors"
           >
             <FaTrash />
@@ -185,10 +185,16 @@ const ProjectCard = ({ project, onViewDetails, onEdit, onDelete }) => {
         </div>
 
         <button 
-          onClick={() => onViewDetails(project.id)}
+          onClick={() => onViewDetails(project._id)}
           className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center transition-colors"
         >
           View Details <FaArrowRight className="ml-2" />
+        </button>
+        <button
+          onClick={() => navigate('/admin/project-architecture')}
+          className="w-full mt-2 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center transition-colors"
+        >
+          Project Architecture
         </button>
       </div>
     </motion.div>
@@ -216,19 +222,18 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
   const [formData, setFormData] = useState(initialFormState);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const { createProject, updateProject, fetchUsers } = useProject();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const loadUsers = async () => {
       try {
-        const response = await axios.get('/auth/all-users');
-        setAvailableUsers(response.data);
+        const users = await fetchUsers();
+        setAvailableUsers(users);
       } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Failed to load users');
+        // Error handled in context
       }
     };
-
-    fetchUsers();
+    loadUsers();
   }, []);
 
   const handleChange = (e) => {
@@ -275,16 +280,11 @@ const ProjectFormModal = ({ isOpen, onClose, project, onSave }) => {
     try {
       if (project) {
         // Update existing project
-        await axios.patch(`http://localhost:5000/api/projects/${project._id}`, payload, {
-          withCredentials: true,
-        });
+        await updateProject(project._id, payload);
         toast.success('Project updated successfully!');
       } else {
         // Create new project
-        console.log(payload)
-        await axios.post('http://localhost:5000/api/projects/create', payload, {
-          withCredentials: true,
-        });
+        await createProject(payload);
         toast.success('Project created successfully!');
       }
 
@@ -577,8 +577,17 @@ const ProjectFormComponent = () => {
 
 // Main Projects Component
 function Projects() {
-  const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState([]);
+  const {
+    projects,
+    loading,
+    fetchProjects,
+    createProject,
+    updateProject,
+    deleteProject,
+    addTeamMember,
+    removeTeamMember,
+    getProject
+  } = useProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
@@ -589,22 +598,6 @@ function Projects() {
   const navigate = useNavigate();
   
 useEffect(() => {
-  const fetchProjects = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/projects/projects', {
-        headers: {
-          Authorization: `Bearer YOUR_JWT_TOKEN`, // Replace this dynamically if using AuthContext
-        }
-      });
-      setProjects(response.data.projects || []); // Make sure your API returns `projects` key
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      toast.error('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   fetchProjects();
 }, []);
 
@@ -617,104 +610,32 @@ useEffect(() => {
     setCurrentProject(project);
     setIsModalOpen(true);
   };
-const handleDeleteProject = async (projectId) => {
-  try {
-  
 
-    const token = localStorage.getItem('userToken');
-    console.log(projectId)
-
-    if (!projectId) {
-      toast.error("Project ID is missing");
-      return;
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await deleteProject(projectId);
+    } catch (error) {
+      // Error handled in context
     }
+  };
 
-
-    await axios.delete(`http://localhost:5000/api/projects/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    // Update local state
-    setProjects(prev => prev.filter(project => project._id !== projectId));
-
-    toast.success('Project deleted successfully!');
-  } catch (error) {
-    console.error('Error deleting project:', error);
-    toast.error(error.response?.data?.message || 'Failed to delete project');
-  }
-};
-
-
-  
-const handleSaveProject = async (projectData) => {
-  console.log("Sending project data:", projectData);
-  try {
-    console.log("Saving project data:", projectData);
-    const token = localStorage.getItem('userToken');
-
-    if (currentProject) {
-      // 🔄 Update existing project in the backend
-      console.log(" sending the request ")
-      const response = await axios.patch(
-        `http://localhost:5000/api/projects/${currentProject._id}`,
-        projectData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      console.log(response);
-
-      const updatedProject = response.data.project;
-
-      // ✅ Update local state with updated project
-      setProjects(prev =>
-        prev.map(project =>
-          project._id === currentProject._id ? updatedProject : project
-        )
-      );
-
-      toast.success('Project updated successfully!');
-    } else {
-      // ➕ Create new project in backend
-      const response = await axios.post(
-        'http://localhost:5000/api/projects/create',
-        projectData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      console.log(response)
-
-      const newProject = response.data.project;
-
-      // ✅ Add new project to local state
-      setProjects(prev => [...prev, newProject]);
-
-      // Simulate team chat creation (optional)
-      console.log(`Created new team chat: ${newProject.title}`);
-      const teamMembers = newProject.teamMembers.map(member => member.name).join(', ');
-      console.log(`Team members: ${teamMembers}`);
-
-      toast.success('Project created successfully!');
+  const handleSaveProject = async (projectData) => {
+    try {
+      
+      setIsModalOpen(false);
+    } catch (error) {
+      // Error handled in context
+      console.error('Error saving project:', error);
     }
-
-    setIsModalOpen(false);
-  } catch (error) {
-    console.error('Error saving project:', error);
-    toast.error(error.response?.data?.message || 'Failed to save project');
-  }
-};
-
+  };
 
   const handleViewDetails = (projectId) => {
     // Navigate to tasks page with the project ID
     navigate(`/admin/tasks`, { state: { projectId } });
+  };
+
+  const handleChatProject = (project) => {
+    navigate('/admin/chatpage', { state: { projectId: project._id, project } });
   };
 
   const toggleSortOrder = () => {
@@ -988,10 +909,11 @@ const handleSaveProject = async (projectData) => {
                   <ProjectCard 
                     key={project._id}
                     project={project}
-                    onViewDetails={() =>handleViewDetails(project._id)}
+                    onViewDetails={() => handleViewDetails(project._id)}
                     onEdit={handleEditProject}
                     onDelete={() => handleDeleteProject(project._id)}
-
+                    onChat={handleChatProject}
+                    navigate={navigate}
                   />
                 ))}
               </div>
@@ -1001,7 +923,7 @@ const handleSaveProject = async (projectData) => {
                 <h3 className="text-xl font-semibold text-white mb-2">No projects found</h3>
                 <p className="text-gray-400 mb-6">Try changing your filters or create a new project</p>
                 <button
-                  onClick={handleCreateProject}
+                
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center mx-auto transition-colors"
                 >
                   <FaPlus className="mr-2" /> Create New Project

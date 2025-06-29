@@ -13,6 +13,9 @@ import {
   HiOutlineUser, HiOutlineOfficeBuilding 
 } from 'react-icons/hi';
 
+import { useTask } from '../../contexts/TaskContext';
+import { useAuth } from '../../contexts/AuthContext';
+
 // Loader Component
 const Loader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
@@ -531,87 +534,8 @@ const StatusChangeModal = ({ task, onClose, onStatusChange }) => {
 function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Implement Login Feature",
-      description: "Create login form with validation and authentication",
-      priority: "High",
-      status: "In Progress",
-      dueDate: "May 25",
-      assignedTo: ["John", "Sarah"],
-      type: "personal",
-      projectId: 1
-    },
-    {
-      id: 2,
-      title: "Database Schema Design",
-      description: "Design database schema for user management module",
-      priority: "Medium",
-      status: "To Do",
-      dueDate: "May 30",
-      assignedTo: ["Mike"],
-      type: "personal",
-      projectId: 1
-    },
-    {
-      id: 3,
-      title: "API Documentation",
-      description: "Create comprehensive documentation for all API endpoints",
-      priority: "Low",
-      status: "Completed",
-      dueDate: "May 20",
-      assignedTo: ["Emma"],
-      type: "personal",
-      projectId: 1
-    },
-    {
-      id: 4,
-      title: "Security Audit",
-      description: "Perform security audit on authentication system",
-      priority: "High",
-      status: "To Do",
-      dueDate: "June 5",
-      assignedTo: ["David", "Lisa"],
-      type: "assigned",
-      projectId: 2
-    },
-    {
-      id: 5,
-      title: "Performance Optimization",
-      description: "Optimize database queries for better performance",
-      priority: "Medium",
-      status: "In Progress",
-      dueDate: "June 2",
-      assignedTo: ["Alex"],
-      type: "assigned",
-      projectId: 2
-    },
-    {
-      id: 6,
-      title: "UI/UX Improvements",
-      description: "Enhance user interface and experience based on feedback",
-      priority: "Medium",
-      status: "To Do",
-      dueDate: "June 10",
-      assignedTo: ["Sarah"],
-      type: "personal",
-      projectId: 3
-    },
-    {
-      id: 7,
-      title: "Code Review",
-      description: "Conduct thorough code review for quality assurance",
-      priority: "High",
-      status: "Pending",
-      projectId: 4,
-      dueDate: "June 8",
-      assignedTo: ["John", "Mike"],
-      type: "assigned"
-    }
-  ]);
-  
+  const { user } = useAuth();
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask, loading } = useTask();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [statusChangeTask, setStatusChangeTask] = useState(null);
@@ -623,85 +547,20 @@ function TasksPage() {
     sortDirection: 'asc'
   });
 
-  // Simulate loading only (removed forced dark mode)
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-  
   // State for current project ID and project details (when viewing project-specific tasks)
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [projectDetails, setProjectDetails] = useState(null);
 
-  // Function to fetch project details by ID
-  const fetchProjectDetails = (projectId) => {
-    // In a real app, you would call an API to fetch project details
-    // For now, we'll use mock data
-    const mockProjects = [
-      {
-        id: 1,
-        title: 'E-commerce Website Redesign',
-        description: 'Redesign the company e-commerce website with modern UI/UX principles',
-        startDate: '2023-06-01',
-        endDate: '2023-07-15',
-        priority: 'High',
-        status: 'In Progress',
-        progress: 65,
-        teamMembers: [
-          { name: 'John Doe', role: 'Frontend Developer' },
-          { name: 'Jane Smith', role: 'UI/UX Designer' },
-          { name: 'Mike Johnson', role: 'Backend Developer' },
-          { name: 'Sarah Williams', role: 'Project Manager' }
-        ]
-      },
-      {
-        id: 2,
-        title: 'Mobile App Development',
-        description: 'Develop a new mobile app for customer engagement',
-        startDate: '2023-05-15',
-        endDate: '2023-08-30',
-        priority: 'Medium',
-        status: 'To Do',
-        progress: 15,
-        teamMembers: [
-          { name: 'John Doe', role: 'Frontend Developer' },
-          { name: 'Alex Brown', role: 'Mobile Developer' },
-          { name: 'Sarah Williams', role: 'Project Manager' }
-        ]
-      },
-      {
-        id: 3,
-        title: 'Marketing Campaign',
-        description: 'Plan and execute Q3 marketing campaign',
-        startDate: '2023-07-01',
-        endDate: '2023-09-30',
-        priority: 'Low',
-        status: 'Planning',
-        progress: 5,
-        teamMembers: [
-          { name: 'Lisa Brown', role: 'Marketing Specialist' },
-          { name: 'Sarah Williams', role: 'Project Manager' }
-        ]
-      },
-      {
-        id: 4,
-        title: 'CRM System Integration',
-        description: 'Integrate new CRM system with existing company infrastructure',
-        startDate: '2023-06-15',
-        endDate: '2023-08-15',
-        priority: 'Urgent',
-        status: 'In Progress',
-        progress: 25,
-        teamMembers: [
-          { name: 'Mike Johnson', role: 'Backend Developer' },
-          { name: 'Ryan Wilson', role: 'Backend Developer' },
-          { name: 'Sarah Williams', role: 'Project Manager' }
-        ]
+  // Fetch tasks from backend on mount and when user or project changes
+  useEffect(() => {
+    if (user) {
+      if (currentProjectId) {
+        fetchTasks({ projectId: currentProjectId });
+      } else {
+        fetchTasks();
       }
-    ];
-    
-    return mockProjects.find(project => project.id === projectId);
-  };
+    }
+  }, [user, currentProjectId, fetchTasks]);
 
   // Check for state from navigation (e.g., from dashboard or projects page)
   useEffect(() => {
@@ -748,7 +607,7 @@ function TasksPage() {
   // Filter and sort tasks
   const filteredTasks = tasks.filter(task => {
     // Filter by project ID if viewing a specific project
-    if (currentProjectId && task.projectId !== currentProjectId) return false;
+    if (currentProjectId && task.project !== currentProjectId && task.project?._id !== currentProjectId) return false;
     // Apply other filters
     if (filter.type !== 'all' && task.type !== filter.type) return false;
     if (filter.status !== 'all' && task.status !== filter.status) return false;
@@ -756,9 +615,8 @@ function TasksPage() {
     return true;
   }).sort((a, b) => {
     const direction = filter.sortDirection === 'asc' ? 1 : -1;
-    
     if (filter.sortBy === 'dueDate') {
-      return a.dueDate.localeCompare(b.dueDate) * direction;
+      return new Date(a.dueDate) - new Date(b.dueDate) * direction;
     } else if (filter.sortBy === 'priority') {
       const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
       return (priorityOrder[a.priority] - priorityOrder[b.priority]) * direction;
@@ -779,27 +637,25 @@ function TasksPage() {
   };
 
   // Handle adding a new task
-  const handleAddTask = (newTask) => {
-    setTasks([...tasks, newTask]);
+  const handleAddTask = async (newTask) => {
+    await addTask({ ...newTask, project: currentProjectId || undefined });
     setShowAddModal(false);
   };
 
   // Handle editing a task
-  const handleEditTask = (updatedTask) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  const handleEditTask = async (updatedTask) => {
+    await updateTask(updatedTask.id, updatedTask);
     setEditingTask(null);
   };
 
   // Handle deleting a task
-  const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+  const handleDeleteTask = async (taskId) => {
+    await deleteTask(taskId);
   };
 
   // Handle changing task status
-  const handleStatusChange = (taskId, newStatus) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+  const handleStatusChange = async (taskId, newStatus) => {
+    await updateTask(taskId, { status: newStatus });
   };
 
   // Toggle sort direction

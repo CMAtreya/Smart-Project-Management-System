@@ -27,6 +27,14 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  projects: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project' // Make sure you have a Project model
+  }],
+  tasks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task' // Make sure you have a Task model
+  }],
   createdAt: {
     type: Date,
     default: Date.now
@@ -34,14 +42,14 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-UserSchema.pre('save', async function() {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Compare password method
-UserSchema.methods.comparePassword = async function(candidatePassword) {
+UserSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
