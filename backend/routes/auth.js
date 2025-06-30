@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const user = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -12,7 +13,6 @@ router.post('/register', async (req, res) => {
     console.log('Request Body:', req.body);
 
     const { name, email, password, role } = req.body;
-; // <-- FIXED
 
     if (!['admin', 'user'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
@@ -118,6 +118,48 @@ router.get('/all-users', async (req, res) => {
   } catch (error) {
     console.error('Fetch users error:', error);
     res.status(500).json({ message: 'Failed to fetch users', error: error.message });
+  }
+});
+
+// UPDATE USER PROFILE
+router.put('/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Authentication invalid' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const payload = jwt.verify(token, JWT_SECRET);
+
+    const { name, email, password } = req.body;
+    const updateData = {};
+    
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    
+    // Get the user first
+    const userToUpdate = await user.findById(payload.userId);
+    if (!userToUpdate) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Handle password update separately
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await user.findByIdAndUpdate(
+      payload.userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Something went wrong', error: error.message });
   }
 });
 

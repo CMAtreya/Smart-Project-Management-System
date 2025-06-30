@@ -43,6 +43,37 @@ const SharedLayout = () => {
   );
 };
 
+// Protected Route Components
+const ProtectedRoute = ({ children, allowedRole }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+  
+  if (allowedRole && user.role !== allowedRole) {
+    return <Navigate to={`/${user.role}/dashboard`} replace />;
+  }
+  
+  return children;
+};
+
+const AdminRoute = ({ element }) => (
+  <ProtectedRoute allowedRole="admin">
+    {element}
+  </ProtectedRoute>
+);
+
+const UserRoute = ({ element }) => (
+  <ProtectedRoute allowedRole="user">
+    {element}
+  </ProtectedRoute>
+);
+
 export default function App() {
   return (
     <div className="app-container">
@@ -54,29 +85,28 @@ export default function App() {
         
         {/* Admin Routes with Layout */}
         <Route element={<SharedLayout />}>
-          <Route path="/admin/dashboard" element={<Admindashboard />} />
-          <Route path="/admin/chat" element={<ChatPage />} />
-          <Route path="/admin/projects" element={<Projects />} />
-          <Route path="/admin/tasks" element={<Tasks />} />
-          <Route path="/admin/calendar" element={<CAlendar />} />
-          <Route path="/admin/analytics" element={<Analytics />} />
-          <Route path="/admin/profile" element={<AdminProfile />} />
-           <Route path="/admin/project-architecture" element={<Projectarchitecture />} />
-
+          <Route path="/admin/dashboard" element={<AdminRoute element={<Admindashboard />} />} />
+          <Route path="/admin/chat" element={<AdminRoute element={<ChatPage />} />} />
+          <Route path="/admin/projects" element={<AdminRoute element={<Projects />} />} />
+          <Route path="/admin/tasks" element={<AdminRoute element={<Tasks />} />} />
+          <Route path="/admin/calendar" element={<AdminRoute element={<CAlendar />} />} />
+          <Route path="/admin/analytics" element={<AdminRoute element={<Analytics />} />} />
+          <Route path="/admin/profile" element={<AdminRoute element={<AdminProfile />} />} />
+          <Route path="/admin/project-architecture" element={<AdminRoute element={<Projectarchitecture />} />} />
         </Route>
 
         {/* User Routes with Layout */}
         <Route element={<SharedLayout />}>
-          <Route path="/user/dashboard" element={<UserDashboard />} />
-          <Route path="/user/projects" element={<UserProjects />} />
-          <Route path="/user/charts" element={<UserChartPage />} />
-          <Route path="/user/chat" element={<UserChatPage />} />
-          <Route path="/user/assignwork" element={<AssignWork />} />
-          <Route path="/user/finishedproject" element={<FinishedProject />} />
-          <Route path="/user/calendar" element={<Calendar />} />
-          <Route path="/user/tasks" element={<UserTasks />} />
-          <Route path="/user/profile" element={<UserProfile />} />
-          <Route path="/user/project-architecture" element={<ProjectArchitecture />} />
+          <Route path="/user/dashboard" element={<UserRoute element={<UserDashboard />} />} />
+          <Route path="/user/projects" element={<UserRoute element={<UserProjects />} />} />
+          <Route path="/user/charts" element={<UserRoute element={<UserChartPage />} />} />
+          <Route path="/user/chat" element={<UserRoute element={<UserChatPage />} />} />
+          <Route path="/user/assignwork" element={<UserRoute element={<AssignWork />} />} />
+          <Route path="/user/finishedproject" element={<UserRoute element={<FinishedProject />} />} />
+          <Route path="/user/calendar" element={<UserRoute element={<Calendar />} />} />
+          <Route path="/user/tasks" element={<UserRoute element={<UserTasks />} />} />
+          <Route path="/user/profile" element={<UserRoute element={<UserProfile />} />} />
+          <Route path="/user/project-architecture" element={<UserRoute element={<ProjectArchitecture />} />} />
         </Route>
         
         {/* Catch all route */}
