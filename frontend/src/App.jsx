@@ -18,6 +18,7 @@ import CAlendar from './pages/admin/calendar';
 import Analytics from './pages/admin/analytics';
 import Projectarchitecture from './pages/admin/projectarch';
 import AdminProfile from './pages/admin/profile';
+import AdminPlanningPage from './pages/admin/PlanningPage';
 
 // User Pages
 import UserChartPage from './pages/user/charts';
@@ -30,6 +31,8 @@ import Calendar from './pages/user/calendar';
 import UserTasks from './pages/user/UserTasks';
 import UserProfile from './pages/user/profile';
 import ProjectArchitecture from './pages/user/projectarch';
+import PlanningPage from './pages/user/PlanningPage';
+import ConstructionPage from './pages/user/ConstructionPage';
 
 // Shared Layout Component for both Admin and User
 const SharedLayout = () => {
@@ -93,6 +96,7 @@ export default function App() {
           <Route path="/admin/analytics" element={<AdminRoute element={<Analytics />} />} />
           <Route path="/admin/profile" element={<AdminRoute element={<AdminProfile />} />} />
           <Route path="/admin/project-architecture" element={<AdminRoute element={<Projectarchitecture />} />} />
+          <Route path="/admin/planning" element={<AdminRoute element={<AdminPlanningPage />} />} />
         </Route>
 
         {/* User Routes with Layout */}
@@ -107,6 +111,8 @@ export default function App() {
           <Route path="/user/tasks" element={<UserRoute element={<UserTasks />} />} />
           <Route path="/user/profile" element={<UserRoute element={<UserProfile />} />} />
           <Route path="/user/project-architecture" element={<UserRoute element={<ProjectArchitecture />} />} />
+          <Route path="/user/planning" element={<UserRoute element={<PlanningPage />} />} />
+          <Route path="/user/construction" element={<UserRoute element={<ConstructionPage />} />} />
         </Route>
         
         {/* Catch all route */}

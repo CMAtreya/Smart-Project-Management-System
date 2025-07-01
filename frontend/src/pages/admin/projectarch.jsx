@@ -122,7 +122,7 @@ const phases = [
 		icon: <ProjectIcon />,
 		status: 'In Progress',
 		color: 'bg-purple-800/80 border-purple-500',
-		onClick: () => window.open('https://www.figma.com/', '_blank'),
+		onClick: (navigate) => navigate('/admin/planning'),
 	},
 	{
 		key: 'construction',
