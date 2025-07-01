@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
     const { email, password, role, adminSecretKey } = req.body || {};
     console.log('Login Request Body:', req.body);
   
-
+console.log(" the request has been came ")
     if (role === 'admin' && adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
       return res.status(403).json({ message: 'Invalid admin secret key' });
     }

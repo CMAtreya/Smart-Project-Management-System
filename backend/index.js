@@ -57,13 +57,16 @@ io.on('connection', (socket) => {
   });
 });
 
+console.log(" the request has been came ")
 
 
 // Routes
-app.use('/auth', require('./routes/auth'));
-app.use('/projects', require('./routes/projects'));
-app.use('/tasks', require('./routes/tasks'));
-app.use('/events', require('./routes/calender'));
+app.use('/api/auth', require('./routes/auth'));
+console.log(" the request has been came ")
+
+app.use('/api/projects', require('./routes/projects'));
+app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/events', require('./routes/calender'));
 
 // Default route
 app.get('/', (req, res) => {
