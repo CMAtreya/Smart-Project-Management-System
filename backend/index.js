@@ -57,6 +57,8 @@ io.on('connection', (socket) => {
   });
 });
 
+
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));

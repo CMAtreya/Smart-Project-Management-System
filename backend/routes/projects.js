@@ -160,13 +160,15 @@ router.post('/create', async (req, res) => {
 // PATCH /api/projects/:id
 router.patch('/:id', async (req, res) => {
   try {
+    console.log("id", req.params.id);
     const project = await Project.findById(req.params.id);
-    console.log(project)
     if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.params.id}` });
     }
 
-    if (req.user.role !== 'admin' && project.createdBy.toString() !== req.user.userId) {
+    // Allow admin, creator, or any team member to update
+    const isTeamMember = project.teamMembers.map(id => id.toString()).includes(req.user.userId);
+    if (req.user.role !== 'admin' && project.createdBy.toString() !== req.user.userId && !isTeamMember) {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
@@ -187,8 +189,7 @@ router.patch('/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('teamMembers', 'name email') // ✅ correct
-
+      .populate('teamMembers', 'name email')
       .populate('createdBy', 'name email');
 
     res.status(200).json({ project: updatedProject });
@@ -271,10 +272,29 @@ router.get('/user/:userId', authenticateUser, async (req, res) => {
     const projects = await Project.find({ teamMembers: userId })
       .populate('teamMembers', 'name role')
       .populate('createdBy', 'name email');
+    console.log("projects:", projects);
     res.status(200).json({ projects });
   } catch (error) {
     console.error('Fetch user projects error:', error);
     res.status(500).json({ message: 'Failed to fetch user projects' });
+  }
+});
+
+// GET /api/projects/created-by/:adminId - Get projects created by a specific admin
+router.get('/created-by/:adminId', authenticateUser, async (req, res) => {
+  try {
+    const adminId = req.params.adminId;
+    // Only allow if the requester is the same admin or is an admin
+    if (req.user.role !== 'admin' || req.user.userId !== adminId) {
+      return res.status(403).json({ message: 'Not authorized to view these projects' });
+    }
+    const projects = await Project.find({ createdBy: adminId })
+      .populate('teamMembers', 'name role')
+      .populate('createdBy', 'name email');
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error('Fetch admin-created projects error:', error);
+    res.status(500).json({ message: 'Failed to fetch admin-created projects' });
   }
 });
 

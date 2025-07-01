@@ -75,8 +75,10 @@ export const ProjectProvider = ({ children }) => {
 
   const updateProject = async (projectId, projectData) => {
     try {
+      console.log("endered the project update request ")
       const response = await axios.patch(`/projects/${projectId}`, projectData);
       // Support both { project: ... } and direct object
+    console.log("  the request is sent ")
       const updatedProject = response.data.project || response.data;
       setProjects(projects.map(project => 
         project._id === projectId ? updatedProject : project
@@ -181,6 +183,27 @@ export const ProjectProvider = ({ children }) => {
     }
   };
 
+  // Fetch projects created by a specific admin
+  const fetchAdminProjects = async (adminId) => {
+    try {
+      const usertoken = localStorage.getItem("token");
+      const response = await axios.get(`/projects/created-by/${adminId}`, {
+        headers: {
+          Authorization: usertoken
+        }
+      });
+      // Ensure response is an array and fallback to []
+      const projectsArr = Array.isArray(response.data.projects)
+        ? response.data.projects
+        : (Array.isArray(response.data) ? response.data : []);
+      return projectsArr;
+    } catch (error) {
+      console.error('Error fetching admin projects:', error);
+      toast.error('Failed to load admin projects');
+      return [];
+    }
+  };
+
   const value = {
     projects,
     loading,
@@ -194,7 +217,8 @@ export const ProjectProvider = ({ children }) => {
     removeTeamMember,
     updateProjectStatus,
     fetchUsers, // <-- add fetchUsers to context value
-    fetchUserProjects // <-- add fetchUserProjects to context value
+    fetchUserProjects, // <-- add fetchUserProjects to context value
+    fetchAdminProjects // <-- add fetchAdminProjects to context value
   };
 
   return (

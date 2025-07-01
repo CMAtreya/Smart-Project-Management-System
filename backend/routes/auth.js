@@ -9,8 +9,7 @@ const JWT_LIFETIME = process.env.JWT_LIFETIME || '30d';
 // REGISTER
 router.post('/register', async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-
+    
     const { name, email, password, role } = req.body;
 ; // <-- FIXED
 

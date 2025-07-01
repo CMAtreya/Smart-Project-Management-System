@@ -189,7 +189,7 @@ const ProjectCard = ({ project, onViewDetails }) => {
           View Details <FaArrowRight className="ml-2" />
         </button>
         <button
-          onClick={() => navigate('/user/projectarch')}
+          onClick={() => navigate(`/user/projectarch`, { state: { projectId: project._id } })}
           className="w-full mt-2 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center transition-colors"
           aria-label="View project architecture"
         >
@@ -496,12 +496,12 @@ function Projects() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectLoading, setProjectLoading] = useState(false); // <-- NEW
   const { user } = useAuth(); // Get user from context
   const { fetchUserProjects } = useProject(); // Get fetchUserProjects from context
   const location = useLocation();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  
   // Add the CSS styles to the document
   useEffect(() => {
     // Create style element
@@ -535,13 +535,36 @@ function Projects() {
     fetchProjectsForUser();
   }, [user, fetchUserProjects, location]);
 
-
-  const handleViewDetails = (projectId) => {
-    navigate('/user/tasks', { state: { projectId } });
+  // Fetch a single project by ID from backend
+  const fetchProjectById = async (projectId) => {
+    setProjectLoading(true);
+    try {
+      const res = await axios.get(`/projects/${projectId}`);
+      setSelectedProject(res.data);
+    } catch (err) {
+      toast.error('Failed to fetch project details.');
+      setSelectedProject(null);
+    } finally {
+      setProjectLoading(false);
+    }
   };
+
+  // When a project is clicked, fetch its details from backend
+  const handleViewDetails = (projectId) => {
+    fetchProjectById(projectId);
+  };
+
+  // If selectedProject is set (e.g. after refresh), fetch its details
+  useEffect(() => {
+    if (location.state && location.state.projectId) {
+      fetchProjectById(location.state.projectId);
+    }
+    // eslint-disable-next-line
+  }, []);
 
   const handleBackToProjects = () => {
     setSelectedProject(null);
+    navigate('/user/projects');
   };
 
   // Filter and sort projects
@@ -726,7 +749,11 @@ function Projects() {
                     )}
                   </>
                 ) : (
-                  <ProjectDetails project={selectedProject} onBack={handleBackToProjects} />
+                  projectLoading ? (
+                    <Loader />
+                  ) : (
+                    <ProjectDetails project={selectedProject} onBack={handleBackToProjects} />
+                  )
                 )}
               </motion.div>
             )}
