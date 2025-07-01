@@ -189,7 +189,8 @@ const ProjectCard = ({ project, onViewDetails }) => {
           View Details <FaArrowRight className="ml-2" />
         </button>
         <button
-          onClick={() => navigate(`/user/projectarch`, { state: { projectId: project._id } })}
+          onClick={() => navigate('/user/project-architecture', { state: { projectId: project._id } })}
+        
           className="w-full mt-2 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center transition-colors"
           aria-label="View project architecture"
         >

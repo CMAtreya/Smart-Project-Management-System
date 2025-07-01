@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useProject } from '../../contexts/ProjectContext';
 
 // Mock navigate function since we don't have react-router-dom
 const mockNavigate = (path) => {
@@ -113,7 +114,7 @@ const phases = [
 		icon: <ProjectIcon />,
 		status: 'In Progress',
 		color: 'bg-purple-800/80 border-purple-500',
-		onClick: () => window.open('https://www.figma.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/planning', { state: { projectId } }),
 	},
 	{
 		key: 'construction',
@@ -123,7 +124,7 @@ const phases = [
 		icon: <CogIcon />,
 		status: 'Not Started',
 		color: 'bg-green-800/80 border-green-500',
-		onClick: (navigate) => navigate('/user/tasks'),
+		onClick: (navigate, projectId) => navigate('/user/construction', { state: { projectId } }),
 		extraLinks: [
 			{
 				label: 'GitHub',
@@ -183,7 +184,17 @@ const statusIcons = {
 
 export default function ProjectArchitecture() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { getProject } = useProject();
   const [hovered, setHovered] = useState(null);
+  const [projectId, setProjectId] = useState(null);
+  
+  useEffect(() => {
+    // Get projectId from location state if available
+    if (location.state && location.state.projectId) {
+      setProjectId(location.state.projectId);
+    }
+  }, [location]);
 
 	return (
 		<>
@@ -213,7 +224,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phase.color} border-2 rounded-2xl shadow-xl p-6 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === idx ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phase.onClick(navigate)}
+								onClick={() => phase.onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(idx)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -291,7 +302,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[0].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 0 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[0].onClick(navigate)}
+								onClick={() => phases[0].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(0)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -322,7 +333,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[1].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 1 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[1].onClick(navigate)}
+								onClick={() => phases[1].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(1)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -353,7 +364,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[2].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 2 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[2].onClick(navigate)}
+								onClick={() => phases[2].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(2)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -403,7 +414,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[5].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 5 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[5].onClick(navigate)}
+								onClick={() => phases[5].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(5)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -434,7 +445,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[4].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 4 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[4].onClick(navigate)}
+								onClick={() => phases[4].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(4)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}
@@ -465,7 +476,7 @@ export default function ProjectArchitecture() {
 								className={`relative group transition-all duration-300 ${phases[3].color} border-2 rounded-2xl shadow-xl p-6 w-80 cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
 									hovered === 3 ? 'ring-2 ring-blue-400' : ''
 								}`}
-								onClick={() => phases[3].onClick(navigate)}
+								onClick={() => phases[3].onClick(navigate, projectId)}
 								onMouseEnter={() => setHovered(3)}
 								onMouseLeave={() => setHovered(null)}
 								tabIndex={0}

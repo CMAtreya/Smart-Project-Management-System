@@ -60,10 +60,10 @@ io.on('connection', (socket) => {
 
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/tasks', require('./routes/tasks'));
-app.use('/api/events', require('./routes/calender'));
+app.use('/auth', require('./routes/auth'));
+app.use('/projects', require('./routes/projects'));
+app.use('/tasks', require('./routes/tasks'));
+app.use('/events', require('./routes/calender'));
 
 // Default route
 app.get('/', (req, res) => {
