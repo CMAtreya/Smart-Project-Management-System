@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Import the common Navbar component
 import Navbar from '../../components/Navbar';
+import WelcomeOverlay from '../../components/WelcomeOverlay';
 
 // Add CSS class for system fonts and background patterns
 const backgroundCSS = `
@@ -558,6 +559,7 @@ const BudgetOverview = () => {
 // Main Dashboard Component
 function Admindashboard() {
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -574,6 +576,14 @@ function Admindashboard() {
     };
   }, []);
 
+  // Show welcome overlay for 15 seconds only on first load
+  useEffect(() => {
+    if (showWelcome) {
+      const timer = setTimeout(() => setShowWelcome(false), 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
+
   // Simulate loading only
   useEffect(() => {
     // Simulate loading resources
@@ -584,8 +594,9 @@ function Admindashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e1e1e] to-[#121212] text-white transition-colors duration-300">
+      <WelcomeOverlay show={showWelcome} onFinish={() => setShowWelcome(false)} userName={user?.name || user?.username || 'Admin'} />
       <AnimatePresence mode="wait">
-        {loading ? (
+        {!showWelcome && (loading ? (
           <motion.div
             key="loader"
             initial={{ opacity: 0 }}
@@ -727,7 +738,7 @@ function Admindashboard() {
               </motion.div>
             </main>
           </motion.div>
-        )}
+        ))}
       </AnimatePresence>
     </div>
   );
