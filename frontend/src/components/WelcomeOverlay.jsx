@@ -26,18 +26,54 @@ const quoteVariants = {
   exit: { opacity: 0, y: -40, transition: { duration: 1 } }
 };
 
+// Use the public folder for the music file
+const MUSIC_URL = '/welcome.mp3';
+
 const WelcomeOverlay = ({ show, onFinish, userName }) => {
   const [quote, setQuote] = useState(QUOTES[0]);
 
   useEffect(() => {
     setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-    if (show) {
-      const timer = setTimeout(() => {
-        onFinish && onFinish();
-      }, 15000); // 15 seconds
-      return () => clearTimeout(timer);
+  }, [show]);
+
+  // Subtle fade out when overlay ends
+  useEffect(() => {
+    const audio = document.getElementById('welcome-audio');
+    let fadeInterval;
+    if (!show && audio && !audio.paused && audio.volume > 0) {
+      let fadeDuration = 1500; // ms
+      let fadeSteps = 30;
+      let step = audio.volume / fadeSteps;
+      let currentStep = 0;
+      fadeInterval = setInterval(() => {
+        if (audio.volume - step > 0 && currentStep < fadeSteps) {
+          audio.volume = Math.max(0, audio.volume - step);
+          currentStep++;
+        } else {
+          audio.volume = 0;
+          audio.pause();
+          audio.currentTime = 0;
+          clearInterval(fadeInterval);
+        }
+      }, fadeDuration / fadeSteps);
+    } else if (!show && audio) {
+      // If already paused or volume is 0, just reset
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 1.0;
     }
-  }, [show, onFinish]);
+    return () => clearInterval(fadeInterval);
+  }, [show]);
+
+  useEffect(() => {
+    const audio = document.getElementById('welcome-audio');
+    if (audio) {
+      audio.currentTime = 60; // Start from 1 minute
+      audio.play();
+      audio.muted = false;
+      audio.volume = 1.0;
+    }
+  }, []);
 
   return (
     <AnimatePresence>

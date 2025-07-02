@@ -53,20 +53,53 @@ const { login } = useAuth();
 
 
 const handleSubmit = async (e) => {
-  e.preventDefault(); // prevent page reload!
+  e.preventDefault();
 
+  const audio = document.getElementById('welcome-audio');
+  if (audio) {
+    audio.currentTime = 60;
+    audio.muted = false;
+    audio.volume = 1.0;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('Audio started successfully');
+          // Delay navigation to ensure audio starts
+          setTimeout(async () => {
+            const role = isAdminMode ? 'admin' : 'user';
+            const loginData = { email, password, role };
+            if (isAdminMode) {
+              loginData.adminSecretKey = adminSecretKey;
+            }
+            try {
+              const loggedInUser = await login(loginData);
+              if (loggedInUser.role === 'admin') {
+                navigate('/admin/dashboard');
+              } else {
+                navigate('/user/dashboard');
+              }
+            } catch (err) {
+              const msg = err.response?.data?.message || "Login failed";
+              setErrors({ api: msg });
+            }
+          }, 100); // 100ms delay
+        })
+        .catch((error) => {
+          console.error('Audio play failed:', error);
+        });
+      return;
+    }
+  }
+
+  // ...rest of your login logic (if playPromise is undefined)
   const role = isAdminMode ? 'admin' : 'user';
   const loginData = { email, password, role };
   if (isAdminMode) {
     loginData.adminSecretKey = adminSecretKey;
   }
-
-  console.log("Sending:", loginData);
-
   try {
     const loggedInUser = await login(loginData);
-    console.log("User logged in:", loggedInUser);
-
     if (loggedInUser.role === 'admin') {
       navigate('/admin/dashboard');
     } else {
