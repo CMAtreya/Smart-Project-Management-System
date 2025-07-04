@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useProject } from '../../contexts/ProjectContext';
 
 // Mock navigate function since we don't have react-router-dom
@@ -146,7 +146,7 @@ const phases = [
 		icon: <ChartIcon />,
 		status: 'Not Started',
 		color: 'bg-yellow-800/80 border-yellow-500',
-		onClick: () => window.open('https://www.lucidchart.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/modelling'),
 	},
 	{
 		key: 'deployment',
@@ -215,6 +215,8 @@ export default function ProjectArchitecture() {
 					A visual journey through the software development lifecycle. Click any
 					phase to explore tools, resources, and progress for your project.
 				</p>
+				{/* Add this where navigation or section links are present, e.g., at the top or in a sidebar */}
+				<Link to="/user/modelling" className="btn btn-primary mb-4">Go to Modelling</Link>
 				{/* Mobile Layout - Vertical Flow */}
 				<div className="block md:hidden w-full max-w-md">
 					{phases.map((phase, idx) => (

@@ -148,16 +148,23 @@ const PlanningPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white pb-10">
       <div className="container mx-auto px-4 py-8">
-        {/* Back button */}
-        <button 
-          onClick={() => navigate('/user/project-architecture', { state: { projectId } })} 
-          className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between mb-8"
         >
-          <FaArrowLeft className="mr-2" /> Back to Project Architecture
-        </button>
-
+          <h1 className="text-3xl md:text-4xl font-bold text-purple-400">Planning Phase</h1>
+          <button
+            onClick={() => navigate('/user/projectarch')}
+            className="text-blue-400 hover:underline text-lg flex items-center gap-1"
+            title="Back to Project Architecture"
+          >
+            <FaArrowLeft className="inline-block mr-1" /> Back
+          </button>
+        </motion.div>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left column - Project details and tasks */}
           <div className="w-full md:w-1/3">

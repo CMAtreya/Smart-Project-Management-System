@@ -33,6 +33,8 @@ import UserProfile from './pages/user/profile';
 import ProjectArchitecture from './pages/user/projectarch';
 import PlanningPage from './pages/user/PlanningPage';
 import ConstructionPage from './pages/user/ConstructionPage';
+import ModellingPage from './pages/user/ModellingPage';
+import MermaidViewer from './pages/user/MermaidViewer';
 
 // Shared Layout Component for both Admin and User
 const SharedLayout = () => {
@@ -113,6 +115,8 @@ export default function App() {
           <Route path="/user/project-architecture" element={<UserRoute element={<ProjectArchitecture />} />} />
           <Route path="/user/planning" element={<UserRoute element={<PlanningPage />} />} />
           <Route path="/user/construction" element={<UserRoute element={<ConstructionPage />} />} />
+          <Route path="/user/modelling" element={<UserRoute element={<ModellingPage />} />} />
+          <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
         </Route>
         
         {/* Catch all route */}
