@@ -579,7 +579,7 @@ function Admindashboard() {
   // Show welcome overlay for 15 seconds only on first load
   useEffect(() => {
     if (showWelcome) {
-      const timer = setTimeout(() => setShowWelcome(false), 15000);
+      const timer = setTimeout(() => setShowWelcome(false), 5000);
       return () => clearTimeout(timer);
     }
   }, [showWelcome]);
