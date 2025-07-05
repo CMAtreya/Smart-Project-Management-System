@@ -100,11 +100,11 @@ const phases = [
 		key: 'communication',
 		title: 'Communication',
 		description:
-			'Requirement gathering, stakeholder interviews, and initial discussions to define project goals.',
+			'Advanced team collaboration with AI-powered insights, real-time communication, and seamless integration.',
 		icon: <CommentIcon />,
 		status: 'Completed',
 		color: 'bg-blue-800/80 border-blue-500',
-		onClick: (navigate) => navigate('/user/requirement-gathering'),
+		onClick: (navigate) => navigate('/user/communication'),
 	},
 	{
 		key: 'planning',
