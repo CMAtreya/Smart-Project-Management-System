@@ -14,40 +14,7 @@ const Loader = () => (
 
 export default function ChatPage() {
   const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "John Doe",
-      content: "Hey team, how's the progress on the dashboard feature?",
-      timestamp: "10:30 AM",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      isRead: true,
-    },
-    {
-      id: 2,
-      sender: "Jane Smith",
-      content: "I've completed the UI design. Just need to implement the API integration.",
-      timestamp: "10:32 AM",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      isRead: true,
-    },
-    {
-      id: 3,
-      sender: "Mike Johnson",
-      content: "Backend endpoints are ready for testing. Let me know when you're ready to connect.",
-      timestamp: "10:35 AM",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      isRead: true,
-    },
-    {
-      id: 4,
-      sender: "Sarah Williams",
-      content: "I've found a bug in the authentication flow. Let's discuss it in our next meeting.",
-      timestamp: "10:40 AM",
-      avatar: "https://randomuser.me/api/portraits/women/4.jpg",
-      isRead: false,
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const [newMessage, setNewMessage] = useState("");
   const [activeChat, setActiveChat] = useState("Team Chat");
@@ -78,11 +45,7 @@ export default function ChatPage() {
   };
 
   const chatList = [
-    { name: "Team Chat", unread: 2, lastMessage: "Backend endpoints are ready...", avatar: "https://randomuser.me/api/portraits/men/1.jpg", isGroup: true },
-    { name: "John Doe", unread: 0, lastMessage: "Let me check and get back to you", avatar: "https://randomuser.me/api/portraits/men/1.jpg", isGroup: false },
-    { name: "Jane Smith", unread: 1, lastMessage: "The design looks great!", avatar: "https://randomuser.me/api/portraits/women/2.jpg", isGroup: false },
-    { name: "Project X Team", unread: 5, lastMessage: "Meeting scheduled for tomorrow", avatar: "https://randomuser.me/api/portraits/men/5.jpg", isGroup: true },
-    { name: "Mike Johnson", unread: 0, lastMessage: "Thanks for the update", avatar: "https://randomuser.me/api/portraits/men/3.jpg", isGroup: false },
+    { name: "Team Chat", unread: 0, lastMessage: "", avatar: "", isGroup: true }
   ];
 
   return (

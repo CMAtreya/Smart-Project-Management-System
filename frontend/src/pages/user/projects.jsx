@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProject } from '../../contexts/ProjectContext';
+import { useTask } from '../../contexts/TaskContext';
 import axios from 'axios';
 
 // Add CSS class for system fonts and background patterns
@@ -498,8 +499,9 @@ function Projects() {
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectLoading, setProjectLoading] = useState(false); // <-- NEW
-  const { user } = useAuth(); // Get user from context
+  const { user, isAuthenticated, isLoading } = useAuth(); // Get user from context
   const { fetchUserProjects } = useProject(); // Get fetchUserProjects from context
+  const { fetchTasks } = useTask();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -516,25 +518,31 @@ function Projects() {
     };
   }, []);
   
+  // Fetch projects and tasks every time the Projects page is visited
   useEffect(() => {
-    const fetchProjectsForUser = async () => {
-      setLoading(true); // Ensure loading state is set on user change
-      if (!user || !user._id) {
-        setProjects([]);
-        setLoading(false);
-        return;
-      }
+    if (isLoading) return; // Wait until auth is loaded
+    if (!user || !user._id) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+    // Clear old data before fetching
+    setProjects([]);
+    setLoading(true);
+    const fetchProjectsAndTasks = async () => {
       try {
         const projectsArr = await fetchUserProjects(user._id);
         setProjects(projectsArr);
-        setLoading(false);
+        // Fetch tasks related to the user (or project, if needed)
+        fetchTasks({ userId: user._id });
       } catch (error) {
         setProjects([]);
+      } finally {
         setLoading(false);
       }
     };
-    fetchProjectsForUser();
-  }, [user, fetchUserProjects, location]);
+    fetchProjectsAndTasks();
+  }, [user, fetchUserProjects, fetchTasks, isLoading, location.pathname]);
 
   // Fetch a single project by ID from backend
   const fetchProjectById = async (projectId) => {
@@ -619,6 +627,13 @@ function Projects() {
     // Apply sort order
     return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
   });
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchUserProjects(user._id);
+      fetchTasks({ userId: user._id }); // or just fetchTasks() if it auto-filters
+    }
+  }, [isAuthenticated, user, fetchUserProjects, fetchTasks]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">

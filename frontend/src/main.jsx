@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
+import { SocketProvider } from './contexts/SocketContext';
 import App from './App';
 import './index.css';
 
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <ProjectProvider>
         <TaskProvider>
-          <App />
+          <SocketProvider>
+            <App />
+          </SocketProvider>
         </TaskProvider>
         </ProjectProvider>
       </AuthProvider>
