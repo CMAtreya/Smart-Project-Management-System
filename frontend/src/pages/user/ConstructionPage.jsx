@@ -443,59 +443,125 @@ root.render(
   }
   
   return (
-    <>
-      <Navbar />
-      <div className="pt-16 min-h-screen bg-gray-900 text-white">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header with back button */}
-          <div className="flex items-center mb-6">
-            <button 
-              onClick={handleGoBack}
-              className="mr-4 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
-              aria-label="Go back"
+    <div className="min-h-screen bg-gray-900 bg-grid-pattern">
+      <style>{`
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
+          background-size: 32px 32px;
+        }
+        .gradient-border {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3));
+          border-radius: 1rem;
+          padding: 1px;
+        }
+        .gradient-border > div {
+          background: rgba(31, 41, 55, 0.9);
+          border-radius: 0.875rem;
+        }
+      `}</style>
+      
+      <div className="pt-16 min-h-screen flex flex-col items-center py-10 px-4">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <span className="bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Construction Phase
+            </span>
+          </h1>
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+            Build and develop your project with integrated GitHub tools, VS Code editor, and terminal access.
+          </p>
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => navigate('/user/project-architecture')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
             >
-              <FaArrowLeft />
+              <FaArrowLeft className="text-sm" />
+              Back to Architecture
             </button>
-            <h1 className="text-3xl font-bold">Construction Phase</h1>
           </div>
-          
+        </motion.div>
+
+        <div className="w-full max-w-7xl">
           {/* Project info */}
           {project && (
-            <div className="bg-gray-800 rounded-lg p-4 mb-6">
-              <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
-              <p className="text-gray-300 mb-2">{project.description}</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full text-sm">
-                  {project.status}
-                </span>
-                <span className="px-3 py-1 bg-purple-900/50 text-purple-300 rounded-full text-sm">
-                  {project.category}
-                </span>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="gradient-border mb-8"
+            >
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
+                  <FaCode className="mr-2" />
+                  Project Details
+                </h2>
+                <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 rounded-xl p-4">
+                  <h3 className="text-xl font-semibold text-white mb-2">{project.name}</h3>
+                  <p className="text-gray-300 mb-3">{project.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full text-sm">
+                      {project.status}
+                    </span>
+                    <span className="px-3 py-1 bg-purple-900/50 text-purple-300 rounded-full text-sm">
+                      {project.category}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+            </motion.div>
           )}
           
           {/* Tabs */}
-          <div className="flex border-b border-gray-700 mb-6">
-            <button
-              className={`px-4 py-2 font-medium ${activeTab === 'github' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
-              onClick={() => setActiveTab('github')}
-            >
-              <FaGithub className="inline mr-2" /> GitHub Integration
-            </button>
-            <button
-              className={`px-4 py-2 font-medium ${activeTab === 'vscode' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
-              onClick={() => setActiveTab('vscode')}
-            >
-              <FaCode className="inline mr-2" /> VS Code Editor
-            </button>
-            <button
-              className={`px-4 py-2 font-medium ${activeTab === 'terminal' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-gray-200'}`}
-              onClick={() => setActiveTab('terminal')}
-            >
-              <FaTerminal className="inline mr-2" /> Terminal
-            </button>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6"
+          >
+            <div className="flex flex-wrap gap-2">
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  activeTab === 'github'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                    : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('github')}
+              >
+                <FaGithub />
+                <span className="hidden sm:inline">GitHub Integration</span>
+              </button>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  activeTab === 'vscode'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                    : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('vscode')}
+              >
+                <FaCode />
+                <span className="hidden sm:inline">VS Code Editor</span>
+              </button>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  activeTab === 'terminal'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                    : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('terminal')}
+              >
+                <FaTerminal />
+                <span className="hidden sm:inline">Terminal</span>
+              </button>
+            </div>
+          </motion.div>
           
           {/* GitHub Tab Content */}
           {activeTab === 'github' && (
@@ -1017,7 +1083,7 @@ root.render(
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useProject } from '../../contexts/ProjectContext';
 
 // Mock navigate function since we don't have react-router-dom
@@ -100,11 +100,11 @@ const phases = [
 		key: 'communication',
 		title: 'Communication',
 		description:
-			'Requirement gathering, stakeholder interviews, and initial discussions to define project goals.',
+			'Advanced team collaboration with AI-powered insights, real-time communication, and seamless integration.',
 		icon: <CommentIcon />,
 		status: 'Completed',
 		color: 'bg-blue-800/80 border-blue-500',
-		onClick: (navigate) => navigate('/user/requirement-gathering'),
+		onClick: (navigate) => navigate('/user/communication'),
 	},
 	{
 		key: 'planning',
@@ -146,7 +146,7 @@ const phases = [
 		icon: <ChartIcon />,
 		status: 'Not Started',
 		color: 'bg-yellow-800/80 border-yellow-500',
-		onClick: () => window.open('https://www.lucidchart.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/modelling'),
 	},
 	{
 		key: 'deployment',
@@ -156,7 +156,7 @@ const phases = [
 		icon: <RocketIcon />,
 		status: 'Not Started',
 		color: 'bg-pink-800/80 border-pink-500',
-		onClick: () => window.open('https://vercel.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/deployment', { state: { projectId } }),
 	},
 	{
 		key: 'maintenance',
