@@ -156,7 +156,7 @@ const phases = [
 		icon: <RocketIcon />,
 		status: 'Not Started',
 		color: 'bg-pink-800/80 border-pink-500',
-		onClick: () => window.open('https://vercel.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/deployment', { state: { projectId } }),
 	},
 	{
 		key: 'maintenance',

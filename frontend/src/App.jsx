@@ -34,6 +34,12 @@ import ProjectArchitecture from './pages/user/projectarch';
 import PlanningPage from './pages/user/PlanningPage';
 import ConstructionPage from './pages/user/ConstructionPage';
 import ModellingPage from './pages/user/ModellingPage';
+import DeploymentPage from './pages/user/DeploymentPage';
+import DeploymentPredictor from './pages/user/DeploymentPredictor';
+import DeploymentTemplates from './pages/user/DeploymentTemplates';
+import SmartRollback from './pages/user/SmartRollback';
+import CostOptimization from './pages/user/CostOptimization';
+import DeploymentAnalytics from './pages/user/DeploymentAnalytics';
 import MermaidViewer from './pages/user/MermaidViewer';
 
 // Shared Layout Component for both Admin and User
@@ -116,6 +122,12 @@ export default function App() {
           <Route path="/user/planning" element={<UserRoute element={<PlanningPage />} />} />
           <Route path="/user/construction" element={<UserRoute element={<ConstructionPage />} />} />
           <Route path="/user/modelling" element={<UserRoute element={<ModellingPage />} />} />
+          <Route path="/user/deployment" element={<UserRoute element={<DeploymentPage />} />} />
+          <Route path="/user/deployment-predictor" element={<UserRoute element={<DeploymentPredictor />} />} />
+          <Route path="/user/deployment-templates" element={<UserRoute element={<DeploymentTemplates />} />} />
+          <Route path="/user/smart-rollback" element={<UserRoute element={<SmartRollback />} />} />
+          <Route path="/user/cost-optimization" element={<UserRoute element={<CostOptimization />} />} />
+          <Route path="/user/deployment-analytics" element={<UserRoute element={<DeploymentAnalytics />} />} />
           <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
         </Route>
         
