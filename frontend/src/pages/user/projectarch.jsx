@@ -215,8 +215,6 @@ export default function ProjectArchitecture() {
 					A visual journey through the software development lifecycle. Click any
 					phase to explore tools, resources, and progress for your project.
 				</p>
-				{/* Add this where navigation or section links are present, e.g., at the top or in a sidebar */}
-				<Link to="/user/modelling" className="btn btn-primary mb-4">Go to Modelling</Link>
 				{/* Mobile Layout - Vertical Flow */}
 				<div className="block md:hidden w-full max-w-md">
 					{phases.map((phase, idx) => (
