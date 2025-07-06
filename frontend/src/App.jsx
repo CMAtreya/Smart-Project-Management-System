@@ -1,7 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
 // Auth Pages
 import Mainpage from './pages/auth/mainpage';
@@ -86,6 +85,7 @@ const UserRoute = ({ element }) => (
   </ProtectedRoute>
 );
 
+// Main App Component
 export default function App() {
   return (
     <div className="app-container">

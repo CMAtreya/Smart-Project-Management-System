@@ -68,7 +68,7 @@ const WelcomeOverlay = ({ show, onFinish, userName }) => {
   useEffect(() => {
     const audio = document.getElementById('welcome-audio');
     if (audio) {
-      audio.currentTime = 60; // Start from 1 minute
+      audio.currentTime = 21; // Start from 1 minute
       audio.play();
       audio.muted = false;
       audio.volume = 1.0;
