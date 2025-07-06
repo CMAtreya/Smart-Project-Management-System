@@ -183,7 +183,7 @@ const ProjectCard = ({ project, onViewDetails }) => {
         </div>
 
         <button 
-          onClick={() => onViewDetails(project.id)}
+          onClick={() => onViewDetails(project._id, project)}
           className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center transition-colors"
           aria-label="View project details"
         >
@@ -559,8 +559,9 @@ function Projects() {
   };
 
   // When a project is clicked, fetch its details from backend
-  const handleViewDetails = (projectId) => {
-    fetchProjectById(projectId);
+  const handleViewDetails = (projectId, projectData) => {
+    // Pass the project data directly to the tasks page for immediate display
+    navigate('/user/tasks', { state: { openProjectDetails: projectId, projectData } });
   };
 
   // If selectedProject is set (e.g. after refresh), fetch its details
@@ -743,7 +744,7 @@ function Projects() {
                           <ProjectCard
                             key={project._id}
                             project={project}
-                            onViewDetails={() => handleViewDetails(project._id)}
+                            onViewDetails={handleViewDetails}
                           />
                         ))}
                       </div>

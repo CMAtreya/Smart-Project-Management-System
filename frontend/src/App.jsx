@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-
+import { ProjectProvider } from './contexts/ProjectContext';
+import { TaskProvider } from './contexts/TaskContext';
 // Auth Pages
 import Mainpage from './pages/auth/mainpage';
 import SignUp from './pages/auth/sign-up';
@@ -89,7 +90,9 @@ const UserRoute = ({ element }) => (
 export default function App() {
   return (
     <div className="app-container">
-      <Routes>
+      <ProjectProvider>
+        <TaskProvider>
+        <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Mainpage />} />
         <Route path="/signin" element={<SignIn/>} />
@@ -135,7 +138,9 @@ export default function App() {
         
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+        </TaskProvider>
+      </ProjectProvider>
     </div>
   );
 }

@@ -553,6 +553,10 @@ function TasksPage() {
 
   // Fetch tasks from backend on mount and when user or project changes
   useEffect(() => {
+    // If projectData is passed from navigation, set project details immediately
+    if (location.state && location.state.projectData) {
+      setProjectDetails(location.state.projectData);
+    }
     if (user) {
       if (currentProjectId) {
         fetchTasks({ projectId: currentProjectId });
@@ -560,7 +564,7 @@ function TasksPage() {
         fetchTasks();
       }
     }
-  }, [user, currentProjectId, fetchTasks]);
+  }, [user, currentProjectId, fetchTasks, location.state]);
 
   // Check for state from navigation (e.g., from dashboard or projects page)
   useEffect(() => {

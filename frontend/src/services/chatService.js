@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Chat Service for Communication Hub
 class ChatService {
   constructor() {
@@ -382,19 +381,25 @@ class ChatService {
 
 // Create singleton instance
 const chatService = new ChatService();
-export default chatService; 
-=======
-import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-export const fetchMessages = async (room) => {
-  const res = await axios.get(`${API_URL}/messages/${room}`);
-  return res.data;
+// Export functions for direct use
+export const fetchMessages = () => chatService.getMessages();
+export const saveMessages = (chatRoom, messages) => {
+  // If only one parameter is provided, assume it's the messages array
+  if (arguments.length === 1 && Array.isArray(chatRoom)) {
+    chatService.messages = chatRoom;
+    chatService.notifyListeners();
+    return true;
+  }
+  
+  // If two parameters are provided, store messages with chatRoom as context
+  if (chatRoom && Array.isArray(messages)) {
+    chatService.messages = messages;
+    chatService.notifyListeners();
+    return true;
+  }
+  
+  return false;
 };
 
-export const saveMessages = async (room, messages) => {
-  const res = await axios.post(`${API_URL}/messages`, { room, messages });
-  return res.data;
-};
->>>>>>> 5720e7de493f212afaee0d8037779331629de946
+export default chatService;

@@ -39,19 +39,14 @@ mongoose.connect(MONGO_URI)
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-<<<<<<< HEAD
     origin: [
       process.env.CLIENT_URL || 'http://localhost:5173',
       'http://localhost:5174',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:5174'
     ],
-    methods: ['GET', 'POST']
-=======
-    origin: 'http://localhost:5173',
     methods: ['GET', 'POST'],
     credentials: true
->>>>>>> 5720e7de493f212afaee0d8037779331629de946
   }
 });
 
