@@ -556,6 +556,47 @@ const BudgetOverview = () => {
   );
 };
 
+// Calendar Overview Card for Admin Dashboard
+function CalendarOverview (){
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.15 }}
+      className={styles.card + " col-span-1"}
+      whileHover={{ scale: 1.02 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-white flex items-center">
+          <div className="bg-indigo-900/30 p-2 rounded-lg mr-3">
+            <FaCalendarAlt className="text-indigo-400" />
+          </div>
+          Calendar Overview
+        </h3>
+        <Link to="/admin/calendar" className="text-gray-400 hover:text-white transition-colors duration-200 bg-gray-700 p-2 rounded-lg">
+          <FaEye />
+        </Link>
+      </div>
+      <div className="mb-4">
+        <p className="text-gray-300 text-sm mb-2">Manage all project and team events, deadlines, and milestones in one place.</p>
+        <div className="flex items-center space-x-2">
+          <span className="text-xs font-medium bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full">Real-time updates</span>
+          <span className="text-xs font-medium bg-green-500/20 text-green-400 py-1 px-3 rounded-full">Event CRUD</span>
+        </div>
+      </div>
+      <div className="flex justify-between items-center mt-6">
+        <Link to="/admin/calendar" className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+          Go to Calendar <FaArrowRight className="ml-2 text-xs" />
+        </Link>
+        <div className="flex items-center space-x-2">
+          <FaCalendarAlt className="text-indigo-400 text-2xl" />
+          <span className="text-sm text-gray-400">Full event management</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // Main Dashboard Component
 function Admindashboard() {
   const [loading, setLoading] = useState(true);
@@ -583,12 +624,10 @@ function Admindashboard() {
       return () => clearTimeout(timer);
     }
   }, [showWelcome]);
-
   // Simulate loading only
   useEffect(() => {
     // Simulate loading resources
     const timer = setTimeout(() => setLoading(false), 1000);
-    
     return () => clearTimeout(timer);
   }, []);
 
@@ -615,9 +654,7 @@ function Admindashboard() {
           >
             {/* Background pattern overlay for visual interest */}
             <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
-            
             <Navbar />
-            
             <main className="container mx-auto px-4 py-6 mt-16 relative z-10 max-w-7xl">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
                 <motion.div 
@@ -630,7 +667,6 @@ function Admindashboard() {
                   {/* Enhanced decorative elements */}
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
                   <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
-                  
                   <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center">
                     <div className="md:w-8/13 pr-0 md:pr-8">
                       <motion.h1 
@@ -672,7 +708,6 @@ function Admindashboard() {
                   </div>
                 </motion.div>
               </div>
-              
               {/* Main dashboard grid layout */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <CompanyPerformance />
@@ -680,19 +715,20 @@ function Admindashboard() {
                   <TeamOverview />
                 </div>
               </div>
-              
+              {/* Calendar Overview Card */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <CalendarOverview />
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <ProjectStatus />
                 <div className="lg:col-span-2">
                   <RecentActivities />
                 </div>
               </div>
-              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <ResourceAllocation />
                 <BudgetOverview />
               </div>
-              
               {/* Quick Actions Section */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -706,33 +742,37 @@ function Admindashboard() {
                   </div>
                   Quick Actions
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <Link to="/admin/projects" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
                     <div className="bg-blue-900/30 p-3 rounded-full mb-3 group-hover:bg-blue-900/50 transition-colors duration-200">
                       <FaProjectDiagram className="text-blue-400 text-xl" />
                     </div>
                     <span className="text-sm font-medium text-white">Manage Projects</span>
                   </Link>
-                  
                   <Link to="/admin/team" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
                     <div className="bg-purple-900/30 p-3 rounded-full mb-3 group-hover:bg-purple-900/50 transition-colors duration-200">
                       <FaUserFriends className="text-purple-400 text-xl" />
                     </div>
                     <span className="text-sm font-medium text-white">Team Management</span>
                   </Link>
-                  
                   <Link to="/admin/analytics" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
                     <div className="bg-green-900/30 p-3 rounded-full mb-3 group-hover:bg-green-900/50 transition-colors duration-200">
                       <FaChartBar className="text-green-400 text-xl" />
                     </div>
                     <span className="text-sm font-medium text-white">Detailed Analytics</span>
                   </Link>
-                  
                   <Link to="/admin/profile" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
                     <div className="bg-yellow-900/30 p-3 rounded-full mb-3 group-hover:bg-yellow-900/50 transition-colors duration-200">
                       <FaCog className="text-yellow-400 text-xl" />
                     </div>
                     <span className="text-sm font-medium text-white">System Settings</span>
+                  </Link>
+                  {/* Calendar Overview Card */}
+                  <Link to="/admin/calendar" className="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700/70 transition-all duration-200 flex flex-col items-center justify-center text-center group">
+                    <div className="bg-indigo-900/30 p-3 rounded-full mb-3 group-hover:bg-indigo-900/50 transition-colors duration-200">
+                      <FaCalendarAlt className="text-indigo-400 text-xl" />
+                    </div>
+                    <span className="text-sm font-medium text-white">Calendar Overview</span>
                   </Link>
                 </div>
               </motion.div>
@@ -742,6 +782,7 @@ function Admindashboard() {
       </AnimatePresence>
     </div>
   );
+  
 }
 
 export default Admindashboard;
