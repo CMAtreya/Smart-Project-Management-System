@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCalendarAlt, FaClipboardCheck, FaBell, FaCheckCircle } from 'react-icons/fa';
-
-// Import the common Navbar component
 import Navbar from '../../components/Navbar';
+import { fetchEvents, createEvent } from '../../services/calendarService';
 
 // Loader Component
 const Loader = () => (
@@ -12,18 +11,33 @@ const Loader = () => (
   </div>
 );
 
+
 export default function Calendar() {
   const [loading, setLoading] = useState(true);
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [events, setEvents] = useState([]);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: '', date: '', priority: 'Medium' });
+  const [creating, setCreating] = useState(false);
 
-  // Simulate loading
+  // Fetch events from backend when month or year changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    setLoading(true);
+    const fetchAllEvents = async () => {
+      try {
+        const month = currentMonth.getMonth() + 1;
+        const year = currentMonth.getFullYear();
+        const data = await fetchEvents(month, year);
+        setEvents(data);
+      } catch (err) {
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllEvents();
+  }, [currentMonth]);
 
   const generateCalendar = () => {
     const year = currentMonth.getFullYear();
@@ -32,7 +46,6 @@ export default function Calendar() {
     const firstDay = new Date(year, month, 1).getDay();
     const calendar = [];
     let dayCount = 1;
-
     for (let i = 0; i < 6; i++) {
       const week = [];
       for (let j = 0; j < 7; j++) {
@@ -43,19 +56,10 @@ export default function Calendar() {
         }
       }
       calendar.push(week);
-      if (dayCount > daysInMonth && i < 5) break; // Don't render empty weeks
+      if (dayCount > daysInMonth && i < 5) break;
     }
-
     return calendar;
   };
-
-  const events = [
-    { date: "May 8", title: "Team Sync-up", type: "today", priority: "High" },
-    { date: "May 21", title: "Demo Presentation", type: "upcoming", priority: "Medium" },
-    { date: "May 13", title: "Design Review", type: "past", priority: "Low" },
-    { date: "May 15", title: "Client Meeting", type: "upcoming", priority: "High" },
-    { date: "May 17", title: "Sprint Planning", type: "upcoming", priority: "Medium" },
-  ];
 
   const calendar = generateCalendar();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -68,10 +72,29 @@ export default function Calendar() {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
+  // Add Event Modal logic
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      await createEvent(newEvent);
+      setShowEventModal(false);
+      setNewEvent({ title: '', date: '', priority: 'Medium' });
+      // Refetch events after adding
+      const month = currentMonth.getMonth() + 1;
+      const year = currentMonth.getFullYear();
+      const data = await fetchEvents(month, year);
+      setEvents(data);
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
-      
       <AnimatePresence>
         {loading ? (
           <Loader />
@@ -90,11 +113,59 @@ export default function Calendar() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                    onClick={() => setShowEventModal(true)}
                   >
                     Add Event
                   </motion.button>
                 </div>
               </div>
+
+              {/* Add Event Modal */}
+              {showEventModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                  <form onSubmit={handleAddEvent} className="bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md border border-gray-700 relative">
+                    <button type="button" className="absolute top-2 right-3 text-gray-400 hover:text-white text-xl" onClick={() => setShowEventModal(false)}>&times;</button>
+                    <h2 className="text-xl font-bold mb-4">Add Event</h2>
+                    <div className="mb-4">
+                      <label className="block text-sm mb-1">Title</label>
+                      <input type="text" className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} required />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm mb-1">Description</label>
+                      <textarea className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.description || ''} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} rows={2} />
+                    </div>
+                    <div className="mb-4 flex space-x-2">
+                      <div className="flex-1">
+                        <label className="block text-sm mb-1">Date</label>
+                        <input type="date" className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} required />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm mb-1">Start Time</label>
+                        <input type="time" className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.startTime || ''} onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm mb-1">End Time</label>
+                        <input type="time" className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.endTime || ''} onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="mb-4 flex space-x-2">
+                      <div className="flex-1">
+                        <label className="block text-sm mb-1">Priority</label>
+                        <select className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.priority} onChange={e => setNewEvent({ ...newEvent, priority: e.target.value })}>
+                          <option value="High">High</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Low">Low</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm mb-1">Location</label>
+                        <input type="text" className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white" value={newEvent.location || ''} onChange={e => setNewEvent({ ...newEvent, location: e.target.value })} />
+                      </div>
+                    </div>
+                    <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" disabled={creating}>{creating ? 'Adding...' : 'Add Event'}</button>
+                  </form>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Calendar Grid */}
@@ -141,23 +212,35 @@ export default function Calendar() {
                   
                   {calendar.map((week, i) => (
                     <div key={i} className="grid grid-cols-7 text-center gap-2 mb-2">
-                      {week.map((day, j) => (
-                        <motion.div
-                          key={j}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`h-14 flex flex-col items-center justify-center rounded-lg ${day === 8 || day === 21 || day === 15 || day === 17 ? "bg-blue-900/30 border border-blue-700" : day ? "bg-gray-700/50 border border-gray-600 hover:bg-gray-700 cursor-pointer" : ""}`}
-                        >
-                          {day && (
-                            <>
-                              <span className={`text-sm ${day === 8 || day === 21 ? "font-bold text-white" : "text-gray-300"}`}>{day}</span>
-                              {(day === 8 || day === 21 || day === 15 || day === 17) && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
-                              )}
-                            </>
-                          )}
-                        </motion.div>
-                      ))}
+                      {week.map((day, j) => {
+                        // Find if there is an event for this day
+                        const eventForDay = events.find(ev => {
+                          if (!ev.date) return false;
+                          const evDate = new Date(ev.date);
+                          return (
+                            evDate.getFullYear() === currentMonth.getFullYear() &&
+                            evDate.getMonth() === currentMonth.getMonth() &&
+                            evDate.getDate() === day
+                          );
+                        });
+                        return (
+                          <motion.div
+                            key={j}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`h-14 flex flex-col items-center justify-center rounded-lg ${eventForDay ? "bg-blue-900/30 border border-blue-700" : day ? "bg-gray-700/50 border border-gray-600 hover:bg-gray-700 cursor-pointer" : ""}`}
+                          >
+                            {day && (
+                              <>
+                                <span className={`text-sm ${eventForDay ? "font-bold text-white" : "text-gray-300"}`}>{day}</span>
+                                {eventForDay && (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                                )}
+                              </>
+                            )}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   ))}
                 </motion.div>
@@ -177,23 +260,27 @@ export default function Calendar() {
                   </div>
                   
                   <div className="space-y-4">
-                    {events.map((event, index) => (
-                      <motion.div 
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        className={`p-4 rounded-lg border ${event.type === 'today' ? 'bg-blue-900/30 border-blue-700' : event.type === 'upcoming' ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-700/30 border-gray-700'}`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{event.title}</h3>
-                            <p className="text-sm text-gray-400">{event.date}</p>
+                    {events.length === 0 ? (
+                      <div className="text-gray-400 text-center">No events for this month.</div>
+                    ) : (
+                      events.map((event, index) => (
+                        <motion.div 
+                          key={event._id || index}
+                          whileHover={{ scale: 1.02 }}
+                          className={`p-4 rounded-lg border ${event.priority === 'High' ? 'bg-red-900/30 border-red-700' : event.priority === 'Medium' ? 'bg-yellow-900/30 border-yellow-700' : 'bg-green-900/30 border-green-700'}`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{event.title}</h3>
+                              <p className="text-sm text-gray-400">{event.date ? new Date(event.date).toLocaleDateString() : ''}</p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded-full ${event.priority === 'High' ? 'bg-red-900/50 text-red-300' : event.priority === 'Medium' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-green-900/50 text-green-300'}`}>
+                              {event.priority}
+                            </span>
                           </div>
-                          <span className={`text-xs px-2 py-1 rounded-full ${event.priority === 'High' ? 'bg-red-900/50 text-red-300' : event.priority === 'Medium' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-green-900/50 text-green-300'}`}>
-                            {event.priority}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))
+                    )}
                   </div>
                   
                   <motion.button

@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserFriends, FaPaperPlane, FaSmile, FaPaperclip, FaSearch, FaEllipsisV } from 'react-icons/fa';
+import { useSocket } from '../../contexts/SocketContext';
+import { fetchMessages, saveMessages } from '../../services/chatService';
+import { fetchTeamMembers } from '../../services/teamService';
 
 // Loader Component
 const Loader = () => (
@@ -9,46 +12,16 @@ const Loader = () => (
   </div>
 );
 
-export default function Chatpage() {
+export default function Chatpage({ projectId }) {
   const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "John Doe",
-      content: "Hey team, how's the progress on the dashboard feature?",
-      timestamp: "10:30 AM",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      isRead: true,
-    },
-    {
-      id: 2,
-      sender: "Jane Smith",
-      content: "I've completed the UI design. Just need to implement the API integration.",
-      timestamp: "10:32 AM",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      isRead: true,
-    },
-    {
-      id: 3,
-      sender: "Mike Johnson",
-      content: "Backend endpoints are ready for testing. Let me know when you're ready to connect.",
-      timestamp: "10:35 AM",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      isRead: true,
-    },
-    {
-      id: 4,
-      sender: "Sarah Williams",
-      content: "I've found a bug in the authentication flow. Let's discuss it in our next meeting.",
-      timestamp: "10:40 AM",
-      avatar: "https://randomuser.me/api/portraits/women/4.jpg",
-      isRead: false,
-    },
-  ]);
-
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [activeChat, setActiveChat] = useState("Team Chat");
-  
+  const [teamMembers, setTeamMembers] = useState([]);
+  const { joinRoom, sendMessage, socket, connected } = useSocket();
+  const chatRoom = "team-chat";
+  const messagesEndRef = useRef(null);
+
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -57,29 +30,96 @@ export default function Chatpage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Join the team chat room on mount
+  useEffect(() => {
+    if (connected) {
+      joinRoom(chatRoom);
+    }
+  }, [connected, joinRoom]);
+
+  // Listen for incoming messages
+  useEffect(() => {
+    if (!socket) return;
+    const handleReceive = (data) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: data.sender || "Teammate",
+          content: data.message,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          avatar: data.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
+          isRead: true,
+        }
+      ]);
+    };
+    socket.on('receive_message', handleReceive);
+    return () => {
+      socket.off('receive_message', handleReceive);
+    };
+  }, [socket]);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() === "") return;
-
-    const message = {
-      id: messages.length + 1,
+    // Send to server
+    sendMessage(chatRoom, newMessage);
+    // Add to local state as 'You'
+    setMessages([...messages, {
+      id: Date.now(),
       sender: "You",
       content: newMessage,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       avatar: "https://randomuser.me/api/portraits/men/4.jpg",
       isRead: true,
-    };
-
-    setMessages([...messages, message]);
+    }]);
     setNewMessage("");
   };
 
+  // Fetch old messages on mount
+  useEffect(() => {
+    fetchMessages(chatRoom).then((msgs) => {
+      setMessages(msgs.map(m => ({
+        id: m._id,
+        sender: m.sender,
+        content: m.content,
+        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        avatar: m.avatar,
+        isRead: true,
+      })));
+    });
+  }, []);
+
+  // Save messages on page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      if (messages.length > 0) {
+        saveMessages(chatRoom, messages.map(({id, ...m}) => m));
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => {
+      handleUnload();
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, [messages]);
+
+  // Fetch team members for the project
+  useEffect(() => {
+    if (projectId) {
+      fetchTeamMembers(projectId).then(setTeamMembers);
+    }
+  }, [projectId]);
+
   const chatList = [
-    { name: "Team Chat", unread: 2, lastMessage: "Backend endpoints are ready...", avatar: "https://randomuser.me/api/portraits/men/1.jpg", isGroup: true },
-    { name: "John Doe", unread: 0, lastMessage: "Let me check and get back to you", avatar: "https://randomuser.me/api/portraits/men/1.jpg", isGroup: false },
-    { name: "Jane Smith", unread: 1, lastMessage: "The design looks great!", avatar: "https://randomuser.me/api/portraits/women/2.jpg", isGroup: false },
-    { name: "Project X Team", unread: 5, lastMessage: "Meeting scheduled for tomorrow", avatar: "https://randomuser.me/api/portraits/men/5.jpg", isGroup: true },
-    { name: "Mike Johnson", unread: 0, lastMessage: "Thanks for the update", avatar: "https://randomuser.me/api/portraits/men/3.jpg", isGroup: false },
+    { name: "Team Chat", unread: 0, lastMessage: "", avatar: "", isGroup: true }
   ];
 
   return (
@@ -97,15 +137,7 @@ export default function Chatpage() {
             <main className="max-w-7xl mx-auto">
               <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Messages</h1>
-                <div className="flex space-x-4">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center"
-                  >
-                    <FaUserFriends className="mr-2" /> New Chat
-                  </motion.button>
-                </div>
+                {/* Removed New Chat button */}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -227,6 +259,7 @@ export default function Chatpage() {
                         )}
                       </motion.div>
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Message Input */}
@@ -331,32 +364,17 @@ export default function Chatpage() {
                   className="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700"
                 >
                   <h2 className="text-xl font-bold mb-4">Team Members</h2>
-                  
-                  <div className="space-y-4">
-                    {[
-                      { name: "John Doe", role: "Project Manager", status: "Online", avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
-                      { name: "Jane Smith", role: "UI/UX Designer", status: "Online", avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
-                      { name: "Mike Johnson", role: "Backend Developer", status: "Online", avatar: "https://randomuser.me/api/portraits/men/3.jpg" },
-                      { name: "Sarah Williams", role: "Frontend Developer", status: "Offline", avatar: "https://randomuser.me/api/portraits/women/4.jpg" },
-                    ].map((member, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    {teamMembers.map((member, index) => (
+                      <div key={index} className="flex items-center">
                         <div className="flex items-center">
                           <div className="relative">
-                            <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full" />
-                            <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-gray-800 ${member.status === 'Online' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                            <img src={member.avatar || `https://randomuser.me/api/portraits/men/${index+1}.jpg`} alt={member.name} className="w-10 h-10 rounded-full" />
                           </div>
                           <div className="ml-3">
                             <p className="font-medium">{member.name}</p>
-                            <p className="text-xs text-gray-400">{member.role}</p>
                           </div>
                         </div>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="text-blue-400 hover:text-blue-300 text-sm"
-                        >
-                          Message
-                        </motion.button>
                       </div>
                     ))}
                   </div>

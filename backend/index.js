@@ -22,6 +22,11 @@ app.use(cors({
   ],
   credentials: true
 }));
+// Security header for content type sniffing
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,6 +39,7 @@ mongoose.connect(MONGO_URI)
 // Socket.io setup
 const io = new Server(server, {
   cors: {
+<<<<<<< HEAD
     origin: [
       process.env.CLIENT_URL || 'http://localhost:5173',
       'http://localhost:5174',
@@ -41,12 +47,25 @@ const io = new Server(server, {
       'http://127.0.0.1:5174'
     ],
     methods: ['GET', 'POST']
+=======
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true
+>>>>>>> 5720e7de493f212afaee0d8037779331629de946
   }
 });
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
+
+  socket.on('error', (err) => {
+    console.error('Socket error:', err);
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('User disconnected:', socket.id, 'Reason:', reason);
+  });
 
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
@@ -61,22 +80,19 @@ io.on('connection', (socket) => {
   socket.on('send_message', (data) => {
     socket.to(data.room).emit('receive_message', data);
   });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
 });
 
 console.log(" the request has been came ")
 
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/auth', require('./routes/auth'));
 console.log(" the request has been came ")
 
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/tasks', require('./routes/tasks'));
-app.use('/api/events', require('./routes/calender'));
+app.use('/projects', require('./routes/projects'));
+app.use('/tasks', require('./routes/tasks'));
+app.use('/events', require('./routes/calender'));
+app.use('/messages', require('./routes/messages'));
 
 // Default route
 app.get('/', (req, res) => {

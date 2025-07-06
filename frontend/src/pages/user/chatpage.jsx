@@ -40,7 +40,25 @@ const ChatPage = () => {
   const [meetingLink, setMeetingLink] = useState('');
   const [showMeetingModal, setShowMeetingModal] = useState(false);
 
+<<<<<<< HEAD
   // Initialize Google API
+=======
+// Loader Component
+const Loader = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
+    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
+  </div>
+);
+
+export default function ChatPage() {
+  const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState([]);
+
+  const [newMessage, setNewMessage] = useState("");
+  const [activeChat, setActiveChat] = useState("Team Chat");
+  
+  // Simulate loading
+>>>>>>> 5720e7de493f212afaee0d8037779331629de946
   useEffect(() => {
     const loadGoogleAPI = () => {
       if (window.gapi) {
@@ -149,6 +167,7 @@ const ChatPage = () => {
     setMessages([...event.detail.messages]);
   };
 
+<<<<<<< HEAD
   // Update messages when chat service messages change
   useEffect(() => {
     if (isChatInitialized) {
@@ -512,6 +531,11 @@ const ChatPage = () => {
   const getChannelTypeIcon = (type) => {
     return type === 'private' ? <FaLock className="text-xs" /> : <FaGlobe className="text-xs" />;
   };
+=======
+  const chatList = [
+    { name: "Team Chat", unread: 0, lastMessage: "", avatar: "", isGroup: true }
+  ];
+>>>>>>> 5720e7de493f212afaee0d8037779331629de946
 
   return (
     <div className="min-h-screen bg-gray-900 bg-grid-pattern">

@@ -3,6 +3,7 @@ const router = express.Router();
 const Project = require('../models/Project');
 const { authenticateUser } = require('../middleware/auth');
 const User = require('../models/User.js'); // ✅ Make sure this is added
+const ChatRoom = require('../models/ChatRoom');
 
 router.use(authenticateUser);
 
@@ -142,6 +143,12 @@ router.post('/create', async (req, res) => {
         { $addToSet: { projects: project._id } }
       );
     }
+
+    // ✅ Create a chat room for this project and its team
+    await ChatRoom.create({
+      project: project._id,
+      members: [...teamMemberIds, req.body.createdBy].filter(Boolean)
+    });
 
     const populatedProject = await Project.findById(project._id)
       .populate('teamMembers', 'name email')
