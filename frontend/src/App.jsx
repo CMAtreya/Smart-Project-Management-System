@@ -40,7 +40,8 @@ import DeploymentTemplates from './pages/user/DeploymentTemplates';
 import SmartRollback from './pages/user/SmartRollback';
 import CostOptimization from './pages/user/CostOptimization';
 import DeploymentAnalytics from './pages/user/DeploymentAnalytics';
-import CommunicationHub from './pages/user/CommunicationHub';
+import RequirementGatheringPage from './pages/user/RequirementGatheringPage';
+import MaintenancePage from './pages/user/MaintenancePage';
 import MermaidViewer from './pages/user/MermaidViewer';
 
 // Shared Layout Component for both Admin and User
@@ -132,8 +133,9 @@ export default function App() {
           <Route path="/user/smart-rollback" element={<UserRoute element={<SmartRollback />} />} />
           <Route path="/user/cost-optimization" element={<UserRoute element={<CostOptimization />} />} />
           <Route path="/user/deployment-analytics" element={<UserRoute element={<DeploymentAnalytics />} />} />
-          <Route path="/user/communication" element={<UserRoute element={<CommunicationHub />} />} />
-          <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
+                      <Route path="/user/requirement-gathering" element={<UserRoute element={<RequirementGatheringPage />} />} />
+            <Route path="/user/maintenance" element={<UserRoute element={<MaintenancePage />} />} />
+            <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
         </Route>
         
         {/* Catch all route */}

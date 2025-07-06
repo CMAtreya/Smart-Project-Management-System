@@ -97,14 +97,13 @@ const XMark = () => (
 // Simple Navbar component since it's not provided
 const phases = [
 	{
-		key: 'communication',
-		title: 'Communication',
-		description:
-			'Advanced team collaboration with AI-powered insights, real-time communication, and seamless integration.',
+		key: 'requirement-gathering',
+		title: 'Requirement Gathering & Analysis',
+		description: 'Collaborate with stakeholders, document requirements, and analyze project needs as per the Waterfall model.',
 		icon: <CommentIcon />,
 		status: 'Completed',
 		color: 'bg-blue-800/80 border-blue-500',
-		onClick: (navigate) => navigate('/user/communication'),
+		onClick: (navigate) => navigate('/user/requirement-gathering'),
 	},
 	{
 		key: 'planning',
@@ -166,7 +165,7 @@ const phases = [
 		icon: <ToolIcon />,
 		status: 'Not Started',
 		color: 'bg-gray-800/80 border-gray-500',
-		onClick: () => window.open('https://trello.com/', '_blank'),
+		onClick: (navigate, projectId) => navigate('/user/maintenance', { state: { projectId } }),
 	},
 ];
 
