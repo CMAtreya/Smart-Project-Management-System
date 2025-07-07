@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { TaskProvider } from './contexts/TaskContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 // Auth Pages
 import Mainpage from './pages/auth/mainpage';
 import SignUp from './pages/auth/sign-up';
@@ -45,7 +46,6 @@ import DeploymentAnalytics from './pages/user/DeploymentAnalytics';
 import RequirementGatheringPage from './pages/user/RequirementGatheringPage';
 import MaintenancePage from './pages/user/MaintenancePage';
 import MermaidViewer from './pages/user/MermaidViewer';
-import { NotificationsProvider } from './contexts/NotificationsContext';
 
 // Shared Layout Component for both Admin and User
 const SharedLayout = () => {

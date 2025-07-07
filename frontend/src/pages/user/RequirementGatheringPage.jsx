@@ -41,11 +41,7 @@ const RequirementGatheringPage = () => {
     { id: 3, name: 'Carol Davis', role: 'Designer', status: 'Pending', avatar: 'CD' },
     { id: 4, name: 'David Wilson', role: 'QA Engineer', status: 'Active', avatar: 'DW' },
   ]);
-  const [meetings, setMeetings] = useState([
-    { id: 1, title: 'Requirements Review', date: '2024-01-15', time: '10:00 AM', attendees: ['Alice', 'Bob'], status: 'Scheduled' },
-    { id: 2, title: 'Stakeholder Interview', date: '2024-01-20', time: '2:00 PM', attendees: ['Carol'], status: 'Pending' },
-    { id: 3, title: 'Technical Architecture Discussion', date: '2024-01-25', time: '11:00 AM', attendees: ['Bob', 'David'], status: 'Scheduled' },
-  ]);
+  // Remove: const [meetings, setMeetings] = useState([...]);
   const [loading, setLoading] = useState(true);
   const [projectId, setProjectId] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -72,6 +68,8 @@ const RequirementGatheringPage = () => {
   }, [location]);
 
   // Fetch project data
+
+
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
@@ -82,24 +80,17 @@ const RequirementGatheringPage = () => {
             setProjectDetails(project);
           }
         } else {
-          // Mock project data
-          setProjectDetails({
-            id: 1,
-            title: 'Smart Project Management System',
-            description: 'A comprehensive project management system with advanced features.',
-            startDate: '2024-01-01',
-            endDate: '2024-06-30',
-            status: 'In Progress',
-            priority: 'High'
-          });
+          console.warn('No projectId provided');
+          setProjectDetails(null);
         }
       } catch (error) {
         console.error('Error fetching project data:', error);
+        setProjectDetails(null);
       } finally {
         setLoading(false);
       }
     };
-    
+  
     fetchProjectData();
   }, [projectId, getProject]);
 
@@ -211,28 +202,14 @@ const RequirementGatheringPage = () => {
     }
   };
 
-  // Schedule meeting
-  const handleScheduleMeeting = () => {
-    const newMeeting = {
-      id: Date.now(),
-      title: 'Requirements Discussion',
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
-      time: '10:00 AM',
-      attendees: stakeholders.filter(s => s.status === 'Active').map(s => s.name),
-      status: 'Scheduled'
-    };
-    setMeetings([...meetings, newMeeting]);
-  };
-
+  
   // Export functionality
   const handleExport = (type) => {
     const data = {
       project: projectDetails,
       requirements: requirements,
-      stakeholders: stakeholders,
-      meetings: meetings
+      stakeholders: stakeholders
     };
-    
     if (type === 'PDF') {
       // Mock PDF export
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -716,46 +693,9 @@ const RequirementGatheringPage = () => {
               </div>
             </motion.div>
 
-            {/* Meeting Scheduler */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="gradient-border"
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-pink-400 flex items-center">
-                    <FaCalendarAlt className="mr-2" />
-                    Meeting Scheduler
-                  </h2>
-                  <button 
-                    onClick={handleScheduleMeeting}
-                    className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
-                  >
-                    Schedule Meeting
-                  </button>
-                </div>
-                <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar">
-                  {meetings.map(meeting => (
-                    <div key={meeting.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-pink-500 transition-all duration-300">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-white font-medium">{meeting.title}</h3>
-                          <p className="text-gray-400 text-sm">{meeting.date} at {meeting.time}</p>
-                          <p className="text-gray-400 text-xs">Attendees: {meeting.attendees.join(', ')}</p>
-                        </div>
-                        <span className={`text-xs px-3 py-1 rounded ${
-                          meeting.status === 'Scheduled' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-white'
-                        }`}>
-                          {meeting.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+           
+            
+            
 
             {/* Traceability Matrix */}
             {showMatrix && (
@@ -910,6 +850,6 @@ const RequirementGatheringPage = () => {
       </div>
     </div>
   );
-};
+}
 
-export default RequirementGatheringPage; 
+export default RequirementGatheringPage;
