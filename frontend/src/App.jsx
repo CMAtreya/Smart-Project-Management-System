@@ -19,6 +19,7 @@ import Analytics from './pages/admin/analytics';
 import Projectarchitecture from './pages/admin/projectarch';
 import AdminProfile from './pages/admin/profile';
 import AdminPlanningPage from './pages/admin/PlanningPage';
+import AdminRequirementGathering from './pages/admin/requirement-gathering';
 
 // User Pages
 import UserChartPage from './pages/user/charts';
@@ -40,7 +41,8 @@ import DeploymentTemplates from './pages/user/DeploymentTemplates';
 import SmartRollback from './pages/user/SmartRollback';
 import CostOptimization from './pages/user/CostOptimization';
 import DeploymentAnalytics from './pages/user/DeploymentAnalytics';
-import CommunicationHub from './pages/user/CommunicationHub';
+import RequirementGatheringPage from './pages/user/RequirementGatheringPage';
+import MaintenancePage from './pages/user/MaintenancePage';
 import MermaidViewer from './pages/user/MermaidViewer';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 
@@ -111,6 +113,7 @@ export default function App() {
           <Route path="/admin/profile" element={<AdminRoute element={<AdminProfile />} />} />
           <Route path="/admin/project-architecture" element={<AdminRoute element={<Projectarchitecture />} />} />
           <Route path="/admin/planning" element={<AdminRoute element={<AdminPlanningPage />} />} />
+          <Route path="/admin/requirement-gathering" element={<AdminRoute element={<AdminRequirementGathering />} />} />
         </Route>
 
         {/* User Routes with Layout */}
@@ -134,8 +137,9 @@ export default function App() {
           <Route path="/user/smart-rollback" element={<UserRoute element={<SmartRollback />} />} />
           <Route path="/user/cost-optimization" element={<UserRoute element={<CostOptimization />} />} />
           <Route path="/user/deployment-analytics" element={<UserRoute element={<DeploymentAnalytics />} />} />
-          <Route path="/user/communication" element={<UserRoute element={<CommunicationHub />} />} />
-          <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
+                      <Route path="/user/requirement-gathering" element={<UserRoute element={<RequirementGatheringPage />} />} />
+            <Route path="/user/maintenance" element={<UserRoute element={<MaintenancePage />} />} />
+            <Route path="/user/mermaid-viewer" element={<UserRoute element={<MermaidViewer />} />} />
         </Route>
         
         {/* Catch all route */}
