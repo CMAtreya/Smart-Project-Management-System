@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 import { useNavigate } from 'react-router-dom';
+import qurelLogo from "../../../public/qurel.png";
 
 import { FaTasks, FaChartBar, FaCalendarAlt, FaBell, FaHeartbeat, FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa';
 import '../../index.css';
@@ -46,6 +47,11 @@ const HeroSection = () => {
 
   return (
     <section className="text-center px-4 py-16 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-gray-800 text-white">
+      <img
+        src={qurelLogo}
+        alt="QUREL Logo"
+        className="mx-auto mb-6 h-36 w-70 rounded-2xl shadow-xl bg-white/10 p-2"
+      />
       <h1 className="text-4xl font-bold mb-4">
         <Typewriter
           options={{
@@ -125,6 +131,14 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
       {/* Logo / About */}
       <div>
+        <motion.img
+          src={qurelLogo}
+          alt="QUREL Logo"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+          className="mb-2 h-10 w-10 rounded-xl shadow-md bg-white/10 p-1"
+        />
         <h2 className="text-2xl font-bold text-white">SmartTask</h2>
         <p className="mt-4 text-sm">
           A smarter way to manage tasks, collaborate, and stay productive. Built for teams that aim for greatness.

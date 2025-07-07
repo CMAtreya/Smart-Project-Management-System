@@ -14,6 +14,7 @@ import { useAuth } from "../contexts/AuthContext";
 import NotificationDropdown from './NotificationDropdown';
 // Add this at the top with your other imports
 import { useNotifications } from '../contexts/NotificationsContext'; // ✅ corrected hook name
+import qurelLogo from "../../public/qurel.png";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -89,9 +90,16 @@ const Navbar = () => {
       <div className="apple-container">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/user/dashboard" className="text-2xl font-semibold text-white">
-            SmartPM
-          </Link>
+          <motion.img
+            src={qurelLogo}
+            alt="QUREL Logo"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="h-12 w-auto mr-4 rounded-xl shadow-lg bg-white/10 p-1"
+          />
+          {/* Optionally keep SmartPM text or remove for standalone logo */}
+          {/* <span className="text-2xl font-semibold text-white">SmartPM</span> */}
 
           {/* Nav Links */}
           <nav className="hidden md:flex space-x-6">
