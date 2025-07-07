@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserShield, FaRobot, FaTable, FaCheck, FaTimes, FaHistory, FaFileExport, FaPlus, FaUsers, FaProjectDiagram, FaCalendarAlt, FaArrowLeft, FaBell, FaSort, FaFilter, FaCrown, FaChartBar, FaEdit, FaTrash, FaEye, FaDownload, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUserShield, FaRobot, FaTable, FaCheck, FaTimes, FaHistory, FaFileExport, FaPlus, FaUsers, FaProjectDiagram, FaCalendarAlt, FaArrowLeft, FaBell, FaSort, FaFilter, FaCrown, FaChartBar, FaEdit, FaTrash, FaEye, FaDownload, FaClock, FaMapMarkerAlt, FaLightbulb } from 'react-icons/fa';
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API = '/requirements';
 
@@ -20,6 +21,7 @@ const priorityColors = {
 };
 
 export default function AdminRequirementGathering() {
+  const navigate = useNavigate();
   // State
   const [requirements, setRequirements] = useState([]);
   const [stakeholders, setStakeholders] = useState([]);
@@ -45,6 +47,11 @@ export default function AdminRequirementGathering() {
     attendees: [],
     agenda: ''
   });
+  const [meetings, setMeetings] = useState([
+    // Example mock meetings
+    { id: 1, title: 'Kickoff Meeting', date: new Date().toISOString().split('T')[0], time: '10:00', agenda: 'Project kickoff and introductions.' },
+    { id: 2, title: 'Design Review', date: new Date().toISOString().split('T')[0], time: '15:00', agenda: 'Review UI/UX designs.' },
+  ]);
 
   // Fetch requirements, stakeholders, audit logs
   useEffect(() => {
@@ -88,118 +95,96 @@ export default function AdminRequirementGathering() {
 
   // Add requirement (manual or from AI)
   const handleAddRequirement = async (req) => {
-    try {
-      setActionLoading(true);
-      const payload = req || { 
-        title: newReq, 
-        description: newReqDescription, 
-        priority: newReqPriority 
+    setActionLoading(true);
+    setTimeout(() => {
+      const newRequirement = req || {
+        _id: Date.now().toString(),
+        title: newReq,
+        description: newReqDescription,
+        priority: newReqPriority,
+        status: 'Pending',
+        stakeholders: [],
       };
-      const res = await axios.post(API, payload);
-      setRequirements([...requirements, res.data]);
+      setRequirements(prev => [...prev, newRequirement]);
       setNewReq('');
       setNewReqDescription('');
       setNewReqPriority('Medium');
-      setNotification('Requirement added successfully!');
-    } catch (error) {
-      console.error('Add requirement error:', error);
-      setNotification('Failed to add requirement');
-    } finally {
       setActionLoading(false);
-    }
+      setNotification('Requirement added successfully!');
+    }, 500);
   };
 
   // Edit requirement
   const handleEditRequirement = async () => {
-    try {
-      setActionLoading(true);
-      const res = await axios.put(`${API}/${editingReq._id}`, editingReq);
-      setRequirements(requirements.map(r => r._id === editingReq._id ? res.data : r));
+    setActionLoading(true);
+    setTimeout(() => {
+      setRequirements(prev => prev.map(r => r._id === editingReq._id ? editingReq : r));
       setEditingReq(null);
-      setNotification('Requirement updated successfully!');
-    } catch (error) {
-      console.error('Edit requirement error:', error);
-      setNotification('Failed to update requirement');
-    } finally {
       setActionLoading(false);
-    }
+      setNotification('Requirement updated successfully!');
+    }, 500);
   };
 
   // Delete requirement
   const handleDeleteRequirement = async (id) => {
-    try {
-      setActionLoading(true);
-      await axios.delete(`${API}/${id}`);
-      setRequirements(requirements.filter(r => r._id !== id));
+    setActionLoading(true);
+    setTimeout(() => {
+      setRequirements(prev => prev.filter(r => r._id !== id));
       setShowDeleteConfirm(null);
-      setNotification('Requirement deleted successfully!');
-    } catch (error) {
-      console.error('Delete requirement error:', error);
-      setNotification('Failed to delete requirement');
-    } finally {
       setActionLoading(false);
-    }
+      setNotification('Requirement deleted successfully!');
+    }, 500);
   };
 
   // Approve/Reject/Clarify
   const handleApproval = async (id, status) => {
-    try {
-      setActionLoading(true);
-      await axios.post(`${API}/${id}/approve`, { userId: 'admin', status });
-      setRequirements(requirements.map(r => r._id === id ? { ...r, status } : r));
-      setNotification(`Requirement ${status.toLowerCase()} successfully!`);
-    } catch (error) {
-      console.error('Approval error:', error);
-      setNotification('Failed to update approval status');
-    } finally {
+    setActionLoading(true);
+    setTimeout(() => {
+      setRequirements(prev => prev.map(r => r._id === id ? { ...r, status } : r));
       setActionLoading(false);
-    }
+      setNotification(`Requirement ${status.toLowerCase()} successfully!`);
+    }, 500);
   };
 
   // Prioritize
   const handlePrioritize = async (id, priority) => {
-    try {
-      setActionLoading(true);
-      await axios.post(`${API}/${id}/prioritize`, { priority });
-      setRequirements(requirements.map(r => r._id === id ? { ...r, priority } : r));
-      setNotification('Priority updated successfully!');
-    } catch (error) {
-      console.error('Prioritize error:', error);
-      setNotification('Failed to update priority');
-    } finally {
+    setActionLoading(true);
+    setTimeout(() => {
+      setRequirements(prev => prev.map(r => r._id === id ? { ...r, priority } : r));
       setActionLoading(false);
-    }
+      setNotification('Priority updated successfully!');
+    }, 500);
   };
 
   // Add stakeholder
   const handleAddStakeholder = async (name, email, role) => {
-    try {
-      setActionLoading(true);
-      const res = await axios.post(`${API}/stakeholders`, { name, email, role });
-      setStakeholders([...stakeholders, res.data]);
-      setNotification('Stakeholder added successfully!');
-    } catch (error) {
-      console.error('Add stakeholder error:', error);
-      setNotification('Failed to add stakeholder');
-    } finally {
+    setActionLoading(true);
+    setTimeout(() => {
+      setStakeholders(prev => [...prev, { _id: Date.now().toString(), name, email, role }]);
       setActionLoading(false);
-    }
+      setNotification('Stakeholder added successfully!');
+    }, 500);
   };
 
   // Meeting scheduling
   const handleScheduleMeeting = async () => {
-    try {
       setActionLoading(true);
-      await axios.post(`${API}/schedule`, meetingData);
+    setTimeout(() => {
+      setMeetings(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          title: meetingData.title,
+          date: meetingData.date,
+          time: meetingData.time,
+          agenda: meetingData.agenda,
+        },
+      ]);
       setShowMeeting(false);
       setMeetingData({ title: '', date: '', time: '', attendees: [], agenda: '' });
-      setNotification('Meeting scheduled successfully!');
-    } catch (error) {
-      console.error('Schedule meeting error:', error);
-      setNotification('Failed to schedule meeting');
-    } finally {
       setActionLoading(false);
-    }
+      setNotification('Meeting scheduled successfully!');
+    }, 800);
   };
 
   // Export
@@ -247,68 +232,243 @@ export default function AdminRequirementGathering() {
   return (
     <>
       <Navbar />
-      <div className="pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-          <div className="absolute bottom-40 right-1/3 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1500"></div>
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto py-10 px-4">
-          {/* Dashboard cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <motion.div className="phase-card border border-blue-500/50 rounded-2xl p-6 bg-gradient-to-br from-blue-900/30 to-cyan-900/30 shadow-blue-500/25 shadow-lg flex flex-col items-start">
+      <div className="min-h-screen bg-gray-900 bg-grid-pattern pt-16 relative overflow-hidden">
+        <style>{`
+          .bg-grid-pattern {
+            background-image: 
+              linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
+            background-size: 32px 32px;
+          }
+          .gradient-border {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3));
+            border-radius: 1rem;
+            padding: 1px;
+          }
+          .gradient-border > div {
+            background: rgba(31, 41, 55, 0.9);
+            border-radius: 0.875rem;
+          }
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 92, 246, 0.5) rgba(31, 41, 55, 0.3);
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.3);
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+          }
+          .smooth-scroll {
+            scroll-behavior: smooth;
+          }
+          .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(31, 41, 55, 0.8);
+          }
+        `}</style>
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8 w-full max-w-7xl mx-auto"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Requirement Gathering & Analysis (Admin)
+            </span>
+          </h1>
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto mb-6">
+            Manage, review, and analyze project requirements with advanced admin tools and AI-powered insights.
+          </p>
+          <div className="flex justify-center mt-6 gap-4">
+            <button
+              onClick={() => navigate('/admin/projects')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center gap-2"
+            >
+              <FaArrowLeft className="text-sm" />
+              Back to Projects
+            </button>
+            <button
+              onClick={() => navigate('/admin/project-architecture')}
+              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center gap-2"
+            >
+              <FaProjectDiagram className="text-sm" />
+              Back to Architecture
+            </button>
+          </div>
+        </motion.div>
+        {/* Main Content Grid */}
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-4 gap-8 mx-auto">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Project Summary */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="gradient-border"
+            >
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4 text-blue-400 flex items-center">
+                  <FaProjectDiagram className="mr-2" />
+                  Project Summary
+                </h2>
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-xl p-4">
+                    <h3 className="text-xl font-semibold text-white mb-2">Smart Project Management System</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Status:</span>
+                        <span className="text-blue-400 font-medium">In Progress</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Phase:</span>
+                        <span className="text-purple-400 font-medium">Requirement Gathering</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Requirements:</span>
+                        <span className="text-green-400 font-medium">{requirements.length}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            {/* Quick Tips */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="gradient-border"
+            >
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4 text-yellow-400 flex items-center">
+                  <FaLightbulb className="mr-2 animate-pulse" />
+                  Quick Tips
+                </h2>
+                <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 rounded-xl p-4">
+                  <p className="text-gray-200 text-sm leading-relaxed mb-3">
+                    Use AI extraction to quickly identify requirements from meeting notes and documents.
+                  </p>
+                  <p className="text-gray-200 text-sm leading-relaxed mb-3">
+                    Collaborate with stakeholders and keep audit logs for transparency.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            {/* Today's Meetings */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="gradient-border"
+            >
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
+                  <FaCalendarAlt className="mr-2" />
+                  Today's Meetings
+                </h2>
+                <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                  {meetings.filter(m => m.date === new Date().toISOString().split('T')[0]).length === 0 ? (
+                    <div className="text-gray-400 text-sm">No meetings scheduled for today.</div>
+                  ) : (
+                    meetings.filter(m => m.date === new Date().toISOString().split('T')[0]).map(m => (
+                      <div key={m.id} className="bg-green-900/40 rounded-lg p-3 flex flex-col">
+                        <span className="text-white font-semibold">{m.title}</span>
+                        <span className="text-xs text-gray-300">{m.time}</span>
+                        <span className="text-xs text-gray-400">{m.agenda}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+          {/* Main Content (col-span-3) */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Dashboard cards, quick actions, AI extraction, requirements table, etc. */}
+            {/* Wrap each major section in a gradient-border and add framer-motion animation as in user pages */}
+            {/* Example for dashboard cards: */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="gradient-border"
+            >
+              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <motion.div className="phase-card rounded-2xl p-6 bg-gradient-to-br from-blue-900/30 to-cyan-900/30 shadow-xl flex flex-col items-start">
               <FaTable className="text-2xl text-blue-400 mb-2" />
               <div className="text-2xl font-bold text-white">{requirements.length}</div>
               <div className="text-gray-300">Total Requirements</div>
             </motion.div>
-            <motion.div className="phase-card border border-green-500/50 rounded-2xl p-6 bg-gradient-to-br from-green-900/30 to-emerald-900/30 shadow-green-500/25 shadow-lg flex flex-col items-start">
+                <motion.div className="phase-card rounded-2xl p-6 bg-gradient-to-br from-green-900/30 to-emerald-900/30 shadow-xl flex flex-col items-start">
               <FaUsers className="text-2xl text-green-400 mb-2" />
               <div className="text-2xl font-bold text-white">{stakeholders.length}</div>
               <div className="text-gray-300">Stakeholders</div>
             </motion.div>
-            <motion.div className="phase-card border border-yellow-500/50 rounded-2xl p-6 bg-gradient-to-br from-yellow-900/30 to-orange-900/30 shadow-yellow-500/25 shadow-lg flex flex-col items-start">
+                <motion.div className="phase-card rounded-2xl p-6 bg-gradient-to-br from-yellow-900/30 to-orange-900/30 shadow-xl flex flex-col items-start">
               <FaHistory className="text-2xl text-yellow-400 mb-2" />
               <div className="text-2xl font-bold text-white">{auditLogs.length}</div>
               <div className="text-gray-300">Audit Logs</div>
             </motion.div>
           </div>
-
+            </motion.div>
           {/* Quick actions */}
-          <div className="flex flex-wrap gap-4 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="gradient-border"
+            >
+              <div className="p-6 flex flex-wrap gap-4">
             <button 
               onClick={() => setShowAudit(!showAudit)} 
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-700 to-cyan-700 text-white font-semibold shadow hover:scale-105 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-700 to-cyan-700 text-white font-semibold shadow-xl flex items-center gap-2"
               disabled={actionLoading}
             >
               <FaHistory /> Audit Timeline
             </button>
             <button 
               onClick={() => setShowMatrix(!showMatrix)} 
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-700 to-pink-700 text-white font-semibold shadow hover:scale-105 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-700 to-pink-700 text-white font-semibold shadow-xl flex items-center gap-2"
               disabled={actionLoading}
             >
               <FaProjectDiagram /> Traceability Matrix
             </button>
             <button 
               onClick={() => setShowMeeting(true)} 
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-700 to-emerald-700 text-white font-semibold shadow hover:scale-105 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-700 to-emerald-700 text-white font-semibold shadow-xl flex items-center gap-2"
               disabled={actionLoading}
             >
               <FaCalendarAlt /> Schedule Meeting
             </button>
             <button 
               onClick={handleExport} 
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-700 to-orange-700 text-white font-semibold shadow hover:scale-105 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-700 to-orange-700 text-white font-semibold shadow-xl flex items-center gap-2"
               disabled={actionLoading}
             >
               <FaDownload /> Export
             </button>
           </div>
-
+            </motion.div>
           {/* AI Extraction */}
-          <div className="mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="gradient-border"
+            >
+              <div className="p-6 mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card max-h-64 overflow-y-auto custom-scrollbar">
             <div className="flex items-center mb-4">
               <FaRobot className="text-2xl text-cyan-400 mr-2" />
               <span className="text-lg font-bold text-white">AI Requirement Extraction</span>
@@ -345,9 +505,15 @@ export default function AdminRequirementGathering() {
               ))}
             </div>
           </div>
-
+            </motion.div>
           {/* Requirements Table */}
-          <div className="mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="gradient-border"
+            >
+              <div className="p-6 mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card max-h-64 overflow-hidden">
             <div className="flex items-center mb-4">
               <FaTable className="text-2xl text-blue-400 mr-2" />
               <span className="text-lg font-bold text-white">Requirements</span>
@@ -359,7 +525,7 @@ export default function AdminRequirementGathering() {
                 <FaPlus /> Add
               </button>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-40 overflow-y-auto custom-scrollbar">
               <table className="min-w-full text-sm text-gray-200">
                 <thead>
                   <tr className="bg-gray-900/80">
@@ -370,74 +536,89 @@ export default function AdminRequirementGathering() {
                     <th className="px-3 py-2">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {requirements.map(r => (
-                    <tr key={r._id} className="border-b border-gray-700 hover:bg-gray-800/60 transition">
-                      <td className="px-3 py-2 font-semibold text-white">{r.title}</td>
-                      <td className="px-3 py-2"><span className={`px-2 py-1 rounded ${statusColors[r.status]}`}>{r.status}</span></td>
-                      <td className="px-3 py-2"><span className={`font-bold ${priorityColors[r.priority]}`}>{r.priority}</span></td>
-                      <td className="px-3 py-2">{r.stakeholders?.length || 0}</td>
-                      <td className="px-3 py-2 flex gap-2">
-                        <button 
-                          onClick={() => handleApproval(r._id, 'Approved')} 
-                          className="px-2 py-1 bg-green-700 rounded text-white hover:bg-green-800 transition"
-                          disabled={actionLoading}
-                          title="Approve"
-                        >
-                          <FaCheck />
-                        </button>
-                        <button 
-                          onClick={() => handleApproval(r._id, 'Rejected')} 
-                          className="px-2 py-1 bg-red-700 rounded text-white hover:bg-red-800 transition"
-                          disabled={actionLoading}
-                          title="Reject"
-                        >
-                          <FaTimes />
-                        </button>
-                        <button 
-                          onClick={() => handleApproval(r._id, 'Clarification Needed')} 
-                          className="px-2 py-1 bg-yellow-700 rounded text-white hover:bg-yellow-800 transition"
-                          disabled={actionLoading}
-                          title="Request Clarification"
-                        >
-                          <FaHistory />
-                        </button>
-                        <button 
-                          onClick={() => setEditingReq(r)} 
-                          className="px-2 py-1 bg-blue-700 rounded text-white hover:bg-blue-800 transition"
-                          disabled={actionLoading}
-                          title="Edit"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button 
-                          onClick={() => setShowDeleteConfirm(r._id)} 
-                          className="px-2 py-1 bg-red-600 rounded text-white hover:bg-red-700 transition"
-                          disabled={actionLoading}
-                          title="Delete"
-                        >
-                          <FaTrash />
-                        </button>
-                        <select 
-                          value={r.priority} 
-                          onChange={e => handlePrioritize(r._id, e.target.value)} 
-                          className="bg-gray-900 text-white border border-gray-700 rounded px-2 py-1"
-                          disabled={actionLoading}
-                        >
-                          <option>High</option>
-                          <option>Medium</option>
-                          <option>Low</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                <AnimatePresence initial={false}>
+                  <tbody>
+                    {requirements.map(r => (
+                      <motion.tr
+                        key={r._id}
+                        initial={{ x: -100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 100, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-b border-gray-700 hover:bg-gray-800/60 transition"
+                      >
+                        <td className="px-3 py-2 font-semibold text-white">{r.title}</td>
+                        <td className="px-3 py-2"><span className={`px-2 py-1 rounded ${statusColors[r.status]}`}>{r.status}</span></td>
+                        <td className="px-3 py-2"><span className={`font-bold ${priorityColors[r.priority]}`}>{r.priority}</span></td>
+                        <td className="px-3 py-2">{r.stakeholders?.length || 0}</td>
+                        <td className="px-3 py-2 flex gap-2">
+                          <button 
+                            onClick={() => handleApproval(r._id, 'Approved')} 
+                            className="px-2 py-1 bg-green-700 rounded text-white hover:bg-green-800 transition"
+                            disabled={actionLoading}
+                            title="Approve"
+                          >
+                            <FaCheck />
+                          </button>
+                          <button 
+                            onClick={() => handleApproval(r._id, 'Rejected')} 
+                            className="px-2 py-1 bg-red-700 rounded text-white hover:bg-red-800 transition"
+                            disabled={actionLoading}
+                            title="Reject"
+                          >
+                            <FaTimes />
+                          </button>
+                          <button 
+                            onClick={() => handleApproval(r._id, 'Clarification Needed')} 
+                            className="px-2 py-1 bg-yellow-700 rounded text-white hover:bg-yellow-800 transition"
+                            disabled={actionLoading}
+                            title="Request Clarification"
+                          >
+                            <FaHistory />
+                          </button>
+                          <button 
+                            onClick={() => setEditingReq(r)} 
+                            className="px-2 py-1 bg-blue-700 rounded text-white hover:bg-blue-800 transition"
+                            disabled={actionLoading}
+                            title="Edit"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button 
+                            onClick={() => setShowDeleteConfirm(r._id)} 
+                            className="px-2 py-1 bg-red-600 rounded text-white hover:bg-red-700 transition"
+                            disabled={actionLoading}
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
+                          <select 
+                            value={r.priority} 
+                            onChange={e => handlePrioritize(r._id, e.target.value)} 
+                            className="bg-gray-900 text-white border border-gray-700 rounded px-2 py-1"
+                            disabled={actionLoading}
+                          >
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                          </select>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </AnimatePresence>
               </table>
             </div>
           </div>
-
+            </motion.div>
           {/* Stakeholder Management */}
-          <div className="mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="gradient-border"
+            >
+              <div className="p-6 mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-6 shadow-xl phase-card max-h-64 overflow-y-auto custom-scrollbar">
             <div className="flex items-center mb-4">
               <FaUsers className="text-2xl text-green-400 mr-2" />
               <span className="text-lg font-bold text-white">Stakeholders</span>
@@ -453,7 +634,7 @@ export default function AdminRequirementGathering() {
             </div>
             <AddStakeholderForm onAdd={handleAddStakeholder} disabled={actionLoading} />
           </div>
-
+            </motion.div>
           {/* Add Requirement Modal */}
           <AnimatePresence>
             {selectedReq === 'new' && (
@@ -465,17 +646,20 @@ export default function AdminRequirementGathering() {
                     onChange={e => setNewReq(e.target.value)} 
                     placeholder="Title" 
                     className="w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:outline-none" 
+                      disabled={actionLoading}
                   />
                   <textarea 
                     value={newReqDescription} 
                     onChange={e => setNewReqDescription(e.target.value)} 
                     placeholder="Description" 
                     className="w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:outline-none h-20 resize-none" 
+                      disabled={actionLoading}
                   />
                   <select 
                     value={newReqPriority} 
                     onChange={e => setNewReqPriority(e.target.value)} 
                     className="w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:outline-none"
+                      disabled={actionLoading}
                   >
                     <option>High</option>
                     <option>Medium</option>
@@ -490,19 +674,18 @@ export default function AdminRequirementGathering() {
                       Cancel
                     </button>
                     <button 
-                      onClick={() => { handleAddRequirement(); setSelectedReq(null); }} 
+                        onClick={async () => { await handleAddRequirement(); setSelectedReq(null); }} 
                       className="px-4 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition flex items-center gap-2"
                       disabled={actionLoading || !newReq.trim()}
                     >
                       {actionLoading ? <FaClock className="animate-spin" /> : <FaPlus />}
-                      Add
+                        {actionLoading ? 'Adding...' : 'Add'}
                     </button>
                   </div>
                 </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Edit Requirement Modal */}
           <AnimatePresence>
             {editingReq && (
@@ -551,7 +734,6 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Delete Confirmation Modal */}
           <AnimatePresence>
             {showDeleteConfirm && (
@@ -580,7 +762,6 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Meeting Scheduling Modal */}
           <AnimatePresence>
             {showMeeting && (
@@ -634,7 +815,6 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Audit Timeline Modal */}
           <AnimatePresence>
             {showAudit && (
@@ -664,7 +844,6 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Traceability Matrix Modal */}
           <AnimatePresence>
             {showMatrix && (
@@ -713,7 +892,6 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* Notification Toast */}
           <AnimatePresence>
             {notification && (
@@ -728,6 +906,7 @@ export default function AdminRequirementGathering() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
     </>
@@ -782,7 +961,7 @@ function AddStakeholderForm({ onAdd, disabled }) {
         disabled={disabled || !name || !email || !role}
       >
         {disabled ? <FaClock className="animate-spin" /> : <FaPlus />}
-        Add
+        {disabled ? 'Adding...' : 'Add'}
       </button>
     </form>
   );
