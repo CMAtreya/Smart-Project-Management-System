@@ -11,6 +11,9 @@ import {
   HiOutlineDocumentReport
 } from "react-icons/hi";
 import { useAuth } from "../contexts/AuthContext";
+import NotificationDropdown from './NotificationDropdown';
+// Add this at the top with your other imports
+import { useNotifications } from '../contexts/NotificationsContext'; // ✅ corrected hook name
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -46,24 +49,8 @@ const Navbar = () => {
   
   const navLinks = isAdminPath ? adminNavLinks : userNavLinks;
 
-  const notifications = [
-    {
-      id: 1,
-      title: "New Task Assigned",
-      message: "You have been assigned a new task: UI Design",
-      time: "2 hours ago",
-      read: false,
-      icon: <HiOutlineClipboardCheck className="w-5 h-5 text-apple-blue-500" />
-    },
-    {
-      id: 2,
-      title: "Meeting Reminder",
-      message: "Team meeting starts in 30 minutes",
-      time: "30 minutes ago",
-      read: false,
-      icon: <HiOutlineCalendar className="w-5 h-5 text-apple-blue-500" />
-    }
-  ];
+  const { notifications, unreadCount, markAllAsRead } = useNotifications();
+
 
   // Always apply dark mode
   useEffect(() => {
@@ -151,50 +138,71 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* Notifications */}
-            <div ref={notificationsRef} className="relative">
-              <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 rounded-full text-white hover:bg-blue-700 transition-colors duration-200"
-              >
-                <div className="relative">
-                  <FiBell className="w-5 h-5" />
-                  {notifications.some(n => !n.read) && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-apple-blue-600 text-white text-xs flex items-center justify-center">
-                      {notifications.filter(n => !n.read).length}
-                    </span>
+         {/* Notifications */}
+<div ref={notificationsRef} className="relative">
+  <button
+    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+    className="p-2 rounded-full text-white hover:bg-blue-700 transition-colors duration-200"
+  >
+    <div className="relative">
+      <FiBell className="w-5 h-5" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
+          {unreadCount}
+        </span>
+      )}
+    </div>
+  </button>
+
+  <AnimatePresence>
+    {isNotificationsOpen && (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg overflow-hidden z-50"
+      >
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+            <button
+              onClick={markAllAsRead}
+              className="text-xs text-blue-500 hover:underline"
+            >
+              Mark all as read
+            </button>
+          </div>
+        </div>
+        <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
+          {notifications.length === 0 ? (
+            <p className="p-4 text-sm text-gray-500">No notifications</p>
+          ) : (
+            notifications.map((n) => (
+              <div key={n._id} className={`p-4 ${!n.isRead ? "bg-blue-50" : ""}`}>
+                <div className="flex items-start space-x-3">
+                  {n.type === "task_created" && (
+                    <HiOutlineClipboardCheck className="w-5 h-5 text-blue-500" />
                   )}
+                  {n.type === "project_created" && (
+                    <HiOutlineCalendar className="w-5 h-5 text-blue-500" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium capitalize">
+                      {n.type.replace(/_/g, ' ')}
+                    </p>
+                    <p className="text-sm text-gray-700">{n.message}</p>
+                    <p className="text-xs text-gray-500">{new Date(n.createdAt).toLocaleString()}</p>
+                  </div>
                 </div>
-              </button>
-              <AnimatePresence>
-                {isNotificationsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 bg-white rounded-apple-lg shadow-apple overflow-hidden"
-                  >
-                    <div className="p-4 border-b border-apple-100">
-                      <h3 className="text-sm font-semibold text-apple-950">Notifications</h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto apple-scrollbar divide-y divide-apple-100">
-                      {notifications.map(n => (
-                        <div key={n.id} className={`p-4 ${!n.read ? "bg-apple-blue-50" : ""}`}>
-                          <div className="flex items-start space-x-3">
-                            {n.icon}
-                            <div>
-                              <p className="text-sm font-medium">{n.title}</p>
-                              <p className="text-sm text-apple-700">{n.message}</p>
-                              <p className="text-xs text-apple-500">{n.time}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              </div>
+            ))
+          )}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
+
 
             {/* Profile */}
             <div ref={profileRef} className="relative">
@@ -240,7 +248,7 @@ const Navbar = () => {
         </div>
       </div>
     </header>
-  );
+  ); 
 };
 
 export default Navbar;

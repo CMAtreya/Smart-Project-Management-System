@@ -561,7 +561,7 @@ function Projects() {
   // When a project is clicked, fetch its details from backend
   const handleViewDetails = (projectId, projectData) => {
     // Pass the project data directly to the tasks page for immediate display
-    navigate('/user/tasks', { state: { openProjectDetails: projectId, projectData } });
+    navigate('/user/tasks'  , { state: { projectId, projectData } });
   };
 
   // If selectedProject is set (e.g. after refresh), fetch its details

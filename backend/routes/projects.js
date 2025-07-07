@@ -82,6 +82,8 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/projects
 // POST /api/projects
+const Notification = require('../models/notification'); // import at the top if not already
+
 router.post('/create', async (req, res) => {
   try {
     const {
@@ -113,9 +115,7 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ message: 'End date must be after start date' });
     }
 
-    // Use teamMembers directly, since frontend sends array of user IDs
     const teamMemberIds = teamMembers;
-
     req.body.createdBy = req.user?.userId || null;
 
     const project = await Project.create({
@@ -130,13 +130,11 @@ router.post('/create', async (req, res) => {
       createdBy: req.body.createdBy
     });
 
-    // ✅ Update each user's `projects` array with this new project ID
     await User.updateMany(
       { _id: { $in: teamMemberIds } },
-      { $addToSet: { projects: project._id } } // avoid duplicates
+      { $addToSet: { projects: project._id } }
     );
 
-    // ✅ Also update the creator’s project list (if not already in teamMembers)
     if (req.body.createdBy && !teamMemberIds.includes(req.body.createdBy)) {
       await User.findByIdAndUpdate(
         req.body.createdBy,
@@ -144,12 +142,24 @@ router.post('/create', async (req, res) => {
       );
     }
 
-    // ✅ Create a chat room for this project and its team
     await ChatRoom.create({
       project: project._id,
       members: [...teamMemberIds, req.body.createdBy].filter(Boolean)
     });
 
+    // ✅ Send notifications to creator + team
+    const allRecipients = [req.body.createdBy, ...teamMemberIds];
+
+    const notifications = allRecipients.map(userId => ({
+      user: userId,
+      type: 'project_created',
+      message: `Project "${title}" has been created.`,
+      link: `/projects/${project._id}`
+    }));
+
+    await Notification.insertMany(notifications);
+
+    // ✅ Populate and return final result
     const populatedProject = await Project.findById(project._id)
       .populate('teamMembers', 'name email')
       .populate('createdBy', 'name email');

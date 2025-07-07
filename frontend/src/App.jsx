@@ -42,6 +42,7 @@ import CostOptimization from './pages/user/CostOptimization';
 import DeploymentAnalytics from './pages/user/DeploymentAnalytics';
 import CommunicationHub from './pages/user/CommunicationHub';
 import MermaidViewer from './pages/user/MermaidViewer';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 
 // Shared Layout Component for both Admin and User
 const SharedLayout = () => {
@@ -90,7 +91,8 @@ const UserRoute = ({ element }) => (
 export default function App() {
   return (
     <div className="app-container">
-      <ProjectProvider>
+     <NotificationsProvider>  
+          <ProjectProvider>
         <TaskProvider>
         <Routes>
         {/* Auth Routes */}
@@ -141,6 +143,7 @@ export default function App() {
         </Routes>
         </TaskProvider>
       </ProjectProvider>
+</NotificationsProvider>
     </div>
   );
 }

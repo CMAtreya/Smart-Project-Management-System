@@ -88,8 +88,8 @@ app.use('/projects', require('./routes/projects'));
 app.use('/tasks', require('./routes/tasks'));
 app.use('/events', require('./routes/calender'));
 app.use('/messages', require('./routes/messages'));
+app.use('/notifications', require('./routes/notification'));
 
-// Default route
 app.get('/', (req, res) => {
   res.send('Project Management API is running');
 });
