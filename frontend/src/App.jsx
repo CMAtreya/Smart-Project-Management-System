@@ -19,6 +19,7 @@ import Analytics from './pages/admin/analytics';
 import Projectarchitecture from './pages/admin/projectarch';
 import AdminProfile from './pages/admin/profile';
 import AdminPlanningPage from './pages/admin/PlanningPage';
+import AdminRequirementGathering from './pages/admin/requirement-gathering';
 
 // User Pages
 import UserChartPage from './pages/user/charts';
@@ -110,6 +111,7 @@ export default function App() {
           <Route path="/admin/profile" element={<AdminRoute element={<AdminProfile />} />} />
           <Route path="/admin/project-architecture" element={<AdminRoute element={<Projectarchitecture />} />} />
           <Route path="/admin/planning" element={<AdminRoute element={<AdminPlanningPage />} />} />
+          <Route path="/admin/requirement-gathering" element={<AdminRoute element={<AdminRequirementGathering />} />} />
         </Route>
 
         {/* User Routes with Layout */}

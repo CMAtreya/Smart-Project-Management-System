@@ -1,378 +1,501 @@
-import React, { useState } from 'react';
-
-// Mock navigate function since we don't have react-router-dom
-const mockNavigate = (path) => {
-  console.log(`Would navigate to: ${path}`);
-  alert(`Navigation to: ${path}`);
-};
-
-// Simple SVG icons to replace react-icons
-const CommentIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
-    <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
-  </svg>
-);
-
-const ProjectIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-400">
-    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-    <circle cx="12" cy="12" r="4"/>
-  </svg>
-);
-
-const CogIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M12 1v6m0 6v6"/>
-    <path d="m9 9 3-3 3 3"/>
-    <path d="m9 15 3 3 3-3"/>
-    <path d="M5 5v.01M19 5v.01M5 19v.01M19 19v.01"/>
-  </svg>
-);
-
-const ChartIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-400">
-    <path d="M3 3v18h18"/>
-    <path d="M7 12l4-4 4 4 4-4"/>
-  </svg>
-);
-
-const RocketIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-400">
-    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
-  </svg>
-);
-
-const ToolIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-  </svg>
-);
-
-const CheckCircleIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-    <polyline points="22,4 12,14.01 9,11.01"/>
-  </svg>
-);
-
-const HourglassIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
-    <path d="M5 22h14"/>
-    <path d="M5 2h14"/>
-    <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>
-    <path d="M7 22v-4.172a2 2 0 0 1 .586-1.414L12 12 7.586 7.414A2 2 0 0 1 7 6.172V2"/>
-  </svg>
-);
-
-const CircleIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
-    <circle cx="12" cy="12" r="10"/>
-  </svg>
-);
-
-// Status marks for flow arrows
-const CheckMark = () => (
-  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full p-1">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-      <polyline points="20,6 9,17 4,12"/>
-    </svg>
-  </div>
-);
-
-const XMark = () => (
-  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full p-1">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-      <path d="M18 6L6 18M6 6l12 12"/>
-    </svg>
-  </div>
-);
-
-// Simple Navbar component since it's not provided
-const Navbar = () => (
-  <nav className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3">
-    <div className="flex items-center justify-between max-w-6xl mx-auto">
-      <h2 className="text-white font-bold text-lg">Project Dashboard</h2>
-      <div className="flex space-x-4">
-        <span className="text-gray-300 text-sm">Welcome, User</span>
-      </div>
-    </div>
-  </nav>
-);
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from '../../components/Navbar';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useProject } from '../../contexts/ProjectContext';
+import { 
+  FaComments, FaProjectDiagram, FaCogs, FaChartLine, 
+  FaRocket, FaTools, FaCheckCircle, FaClock, FaCircle,
+  FaArrowRight, FaArrowDown, FaArrowUp, FaArrowLeft,
+  FaLightbulb, FaCode, FaDatabase, FaServer, FaCloud,
+  FaShieldAlt, FaUsers, FaFileAlt, FaGithub, FaCodeBranch
+} from 'react-icons/fa';
 
 const phases = [
 	{
-		key: 'communication',
-		title: 'Communication',
-		description:
-			'Requirement gathering, stakeholder interviews, and initial discussions to define project goals.',
-		icon: <CommentIcon />,
+		key: 'requirement-gathering',
+		title: 'Requirement Gathering & Analysis',
+		subtitle: 'Foundation Phase',
+		description: 'Collaborate with stakeholders, document requirements, and analyze project needs following the Waterfall methodology.',
+		icon: <FaComments />,
 		status: 'Completed',
-		color: 'bg-blue-800/80 border-blue-500',
-		onClick: (navigate) => navigate('/user/requirement-gathering'),
+		color: 'from-blue-600 to-cyan-600',
+		bgColor: 'from-blue-900/20 to-cyan-900/20',
+		borderColor: 'border-blue-500/50',
+		glowColor: 'shadow-blue-500/25',
+		progress: 100,
+		features: ['Stakeholder Collaboration', 'Requirement Documentation', 'Analysis & Validation'],
+		onClick: (navigate) => navigate('/admin/requirement-gathering'),
 	},
 	{
 		key: 'planning',
-		title: 'Planning',
-		description:
-			'Wireframing, prototyping, and project planning using collaborative design tools.',
-		icon: <ProjectIcon />,
+		title: 'Planning & Design',
+		subtitle: 'Strategy Phase',
+		description: 'Wireframing, prototyping, and comprehensive project planning using collaborative design tools.',
+		icon: <FaProjectDiagram />,
 		status: 'In Progress',
-		color: 'bg-purple-800/80 border-purple-500',
-		onClick: (navigate) => navigate('/admin/planning'),
+		color: 'from-purple-600 to-pink-600',
+		bgColor: 'from-purple-900/20 to-pink-900/20',
+		borderColor: 'border-purple-500/50',
+		glowColor: 'shadow-purple-500/25',
+		progress: 65,
+		features: ['Wireframing', 'Prototyping', 'Project Planning'],
+		onClick: (navigate, projectId) => navigate('/admin/planning', { state: { projectId } }),
 	},
 	{
 		key: 'construction',
-		title: 'Construction',
-		description:
-			'Development, coding, and implementation of features with task tracking and code integration.',
-		icon: <CogIcon />,
+		title: 'Construction & Development',
+		subtitle: 'Build Phase',
+		description: 'Development, coding, and implementation of features with comprehensive task tracking and code integration.',
+		icon: <FaCogs />,
 		status: 'Not Started',
-		color: 'bg-green-800/80 border-green-500',
-		onClick: (navigate) => navigate('/user/tasks'),
+		color: 'from-green-600 to-emerald-600',
+		bgColor: 'from-green-900/20 to-emerald-900/20',
+		borderColor: 'border-green-500/50',
+		glowColor: 'shadow-green-500/25',
+		progress: 0,
+		features: ['Development', 'Task Tracking', 'Code Integration'],
 		extraLinks: [
-			{
-				label: 'GitHub',
-				url: 'https://github.com/',
-				icon: <ProjectIcon />,
-			},
-			{
-				label: 'VS Code',
-				url: 'https://vscode.dev/',
-				icon: <CogIcon />,
-			},
+			{ label: 'GitHub', url: 'https://github.com/', icon: <FaGithub /> },
+			{ label: 'VS Code', url: 'https://vscode.dev/', icon: <FaCodeBranch /> },
 		],
+		onClick: (navigate, projectId) => navigate('/admin/tasks', { state: { projectId } }),
 	},
 	{
 		key: 'modeling',
-		title: 'Modeling',
-		description:
-			'System and data modeling, architecture diagrams, and technical documentation.',
-		icon: <ChartIcon />,
+		title: 'System Modeling',
+		subtitle: 'Architecture Phase',
+		description: 'System and data modeling, architecture diagrams, and comprehensive technical documentation.',
+		icon: <FaChartLine />,
 		status: 'Not Started',
-		color: 'bg-yellow-800/80 border-yellow-500',
-		onClick: () => window.open('https://www.lucidchart.com/', '_blank'),
+		color: 'from-yellow-600 to-orange-600',
+		bgColor: 'from-yellow-900/20 to-orange-900/20',
+		borderColor: 'border-yellow-500/50',
+		glowColor: 'shadow-yellow-500/25',
+		progress: 0,
+		features: ['System Modeling', 'Architecture Design', 'Technical Documentation'],
+		onClick: (navigate, projectId) => navigate('/admin/modelling'),
 	},
 	{
 		key: 'deployment',
-		title: 'Deployment',
-		description:
-			'Release management, CI/CD, and deployment to production environments.',
-		icon: <RocketIcon />,
+		title: 'Deployment & Release',
+		subtitle: 'Launch Phase',
+		description: 'Release management, CI/CD pipeline implementation, and deployment to production environments.',
+		icon: <FaRocket />,
 		status: 'Not Started',
-		color: 'bg-pink-800/80 border-pink-500',
-		onClick: () => window.open('https://vercel.com/', '_blank'),
+		color: 'from-pink-600 to-rose-600',
+		bgColor: 'from-pink-900/20 to-rose-900/20',
+		borderColor: 'border-pink-500/50',
+		glowColor: 'shadow-pink-500/25',
+		progress: 0,
+		features: ['Release Management', 'CI/CD Pipeline', 'Production Deployment'],
+		onClick: (navigate, projectId) => navigate('/admin/deployment', { state: { projectId } }),
 	},
 	{
 		key: 'maintenance',
-		title: 'Maintenance',
-		description:
-			'Ongoing support, bug fixes, and continuous improvement post-launch.',
-		icon: <ToolIcon />,
+		title: 'Maintenance & Support',
+		subtitle: 'Support Phase',
+		description: 'Ongoing support, bug fixes, performance optimization, and continuous improvement post-launch.',
+		icon: <FaTools />,
 		status: 'Not Started',
-		color: 'bg-gray-800/80 border-gray-500',
-		onClick: () => window.open('https://trello.com/', '_blank'),
+		color: 'from-gray-600 to-slate-600',
+		bgColor: 'from-gray-900/20 to-slate-900/20',
+		borderColor: 'border-gray-500/50',
+		glowColor: 'shadow-gray-500/25',
+		progress: 0,
+		features: ['Bug Fixes', 'Performance Optimization', 'Continuous Support'],
+		onClick: (navigate, projectId) => navigate('/admin/maintenance', { state: { projectId } }),
 	},
 ];
 
-const statusColors = {
-	'Not Started': 'text-gray-400',
-	'In Progress': 'text-blue-400',
-	Completed: 'text-green-400',
-};
-
-const statusIcons = {
-	'Not Started': <CircleIcon />,
-	'In Progress': <HourglassIcon />,
-	Completed: <CheckCircleIcon />,
+const statusConfig = {
+	'Not Started': { color: 'text-gray-400', icon: <FaCircle />, bg: 'bg-gray-700/50' },
+	'In Progress': { color: 'text-blue-400', icon: <FaClock />, bg: 'bg-blue-700/50' },
+	'Completed': { color: 'text-green-400', icon: <FaCheckCircle />, bg: 'bg-green-700/50' },
 };
 
 export default function ProjectArchitecture() {
-	const navigate = mockNavigate;
-	const [hovered, setHovered] = useState(null);
+	const navigate = useNavigate();
+	const location = useLocation();
+	const { getProject } = useProject();
+	const [hoveredPhase, setHoveredPhase] = useState(null);
+	const [projectId, setProjectId] = useState(null);
+	const [selectedPhase, setSelectedPhase] = useState(null);
+	
+	useEffect(() => {
+		if (location.state && location.state.projectId) {
+			setProjectId(location.state.projectId);
+		}
+	}, [location]);
+
+	const handlePhaseClick = (phase) => {
+		setSelectedPhase(phase);
+		setTimeout(() => {
+			phase.onClick(navigate, projectId);
+		}, 300);
+	};
 
 	return (
 		<>
 			<Navbar />
-			<div className="pt-16 min-h-screen bg-gray-900 bg-grid-pattern flex flex-col items-center py-10 px-4">
-				<style>{`
-          .bg-grid-pattern {
-            background-image: 
-              linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
-            background-size: 32px 32px;
-          }
-        `}</style>
-				<h1 className="text-3xl md:text-4xl font-bold text-white mb-2 text-center">
-					Project Architecture
-				</h1>
-				<p className="text-gray-300 mb-10 text-center max-w-2xl">
-					A visual journey through the software development lifecycle. Click any
-					phase to explore tools, resources, and progress for your project.
-				</p>
-				
-				{/* Mobile Layout - Vertical Flow */}
-				<div className="block md:hidden w-full max-w-md">
-					<div className="flex flex-col items-center">
-						{phases.map((phase, idx) => (
-							<div key={phase.key} className="relative w-full flex flex-col items-center">
-								{/* Phase Card */}
-								<div
-									className={`relative group transition-all duration-300 ${phase.color} border-2 rounded-2xl shadow-xl p-6 w-full cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
-										hovered === idx ? 'ring-2 ring-blue-400' : ''
-									}`}
-									onClick={() => phase.onClick(navigate)}
-									onMouseEnter={() => setHovered(idx)}
-									onMouseLeave={() => setHovered(null)}
-									tabIndex={0}
-									role="button"
-									aria-label={`Go to ${phase.title}`}
-								>
-									<div className="flex items-center mb-3">
-										{phase.icon}
-										<span className="ml-3 text-xl font-semibold text-white">
-											{phase.title}
-										</span>
-									</div>
-									<p className="text-gray-300 mb-4 text-sm min-h-[48px]">
-										{phase.description}
-									</p>
-									<div className="flex items-center mb-2">
-										<span
-											className={`text-xs font-medium ${statusColors[phase.status]}`}
-										>
-											{statusIcons[phase.status]}
-											{phase.status}
-										</span>
-									</div>
-									{/* Extra links for Construction phase */}
-									{phase.key === 'construction' && (
-										<div className="flex gap-2 mt-2">
-											<a
-												href="https://github.com/"
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded flex items-center transition-colors"
-											>
-												<ProjectIcon /> GitHub
-											</a>
-											<a
-												href="https://vscode.dev/"
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-xs bg-blue-900/30 hover:bg-blue-800/50 text-blue-300 px-2 py-1 rounded flex items-center transition-colors"
-											>
-												<CogIcon /> VS Code
-											</a>
-										</div>
-									)}
-								</div>
-								
-								{/* Downward Arrow (except for last item) */}
-								{idx < phases.length - 1 && (
-									<div className="flex justify-center my-4 relative">
-										<svg width="24" height="32" viewBox="0 0 24 32" className="text-gray-500">
-											<path
-												d="M12 2 L12 26 M8 22 L12 26 L16 22"
-												stroke="currentColor"
-												strokeWidth="2"
-												fill="none"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											/>
-										</svg>
-										{/* Status mark based on current phase completion */}
-										{phase.status === 'Completed' ? <CheckMark /> : <XMark />}
-									</div>
-								)}
-							</div>
-						))}
-					</div>
+			<div className="pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
+				{/* Animated Background Elements */}
+				<div className="absolute inset-0 overflow-hidden">
+					<div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+					<div className="absolute top-40 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+					<div className="absolute bottom-20 left-1/3 w-80 h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+					<div className="absolute bottom-40 right-1/3 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1500"></div>
 				</div>
 
-				{/* Desktop Layout - Clean Vertical Flow */}
-				<div className="hidden md:block w-full max-w-4xl">
-					<div className="flex flex-col items-center space-y-8">
-						{phases.map((phase, idx) => (
-							<div key={phase.key} className="relative w-full flex flex-col items-center">
-								{/* Phase Card */}
-								<div
-									className={`relative group transition-all duration-300 ${phase.color} border-2 rounded-2xl shadow-xl p-8 w-full max-w-2xl cursor-pointer hover:scale-105 hover:shadow-blue-900/30 ${
-										hovered === idx ? 'ring-2 ring-blue-400' : ''
-									}`}
-									onClick={() => phase.onClick(navigate)}
-									onMouseEnter={() => setHovered(idx)}
-									onMouseLeave={() => setHovered(null)}
-									tabIndex={0}
-									role="button"
-									aria-label={`Go to ${phase.title}`}
-								>
-									<div className="flex items-center mb-4">
-										{phase.icon}
-										<span className="ml-4 text-2xl font-semibold text-white">
-											{phase.title}
-										</span>
-									</div>
-									<p className="text-gray-300 mb-4 text-base leading-relaxed">
-										{phase.description}
-									</p>
-									<div className="flex items-center justify-between">
-										<span className={`text-sm font-medium ${statusColors[phase.status]}`}>
-											{statusIcons[phase.status]}
-											{phase.status}
-										</span>
-										
-										{/* Extra links for Construction phase */}
-										{phase.key === 'construction' && (
-											<div className="flex gap-3">
-												<a
-													href="https://github.com/"
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-2 rounded-lg flex items-center transition-colors"
-													onClick={(e) => e.stopPropagation()}
-												>
-													<ProjectIcon /> <span className="ml-2">GitHub</span>
-												</a>
-												<a
-													href="https://vscode.dev/"
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-sm bg-blue-900/30 hover:bg-blue-800/50 text-blue-300 px-3 py-2 rounded-lg flex items-center transition-colors"
-													onClick={(e) => e.stopPropagation()}
-												>
-													<CogIcon /> <span className="ml-2">VS Code</span>
-												</a>
-											</div>
-										)}
-									</div>
-								</div>
-								
-								{/* Downward Arrow (except for last item) */}
-								{idx < phases.length - 1 && (
-									<div className="flex justify-center my-6 relative">
-										<svg width="32" height="48" viewBox="0 0 32 48" className="text-gray-500">
-											<path
-												d="M16 4 L16 40 M12 36 L16 40 L20 36"
-												stroke="currentColor"
-												strokeWidth="2"
-												fill="none"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											/>
-										</svg>
-										{/* Status mark based on current phase completion */}
-										{phase.status === 'Completed' ? <CheckMark /> : <XMark />}
-									</div>
-								)}
+				{/* Grid Pattern Overlay */}
+				<div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+
+				<div className="relative z-10 flex flex-col items-center py-10 px-4">
+					<style>{`
+						.bg-grid-pattern {
+							background-image: 
+								linear-gradient(to right, rgba(100, 116, 139, 0.1) 1px, transparent 1px),
+								linear-gradient(to bottom, rgba(100, 116, 139, 0.1) 1px, transparent 1px);
+							background-size: 40px 40px;
+						}
+						.phase-card {
+							backdrop-filter: blur(10px);
+							background: rgba(31, 41, 55, 0.8);
+						}
+						.progress-ring {
+							transform: rotate(-90deg);
+						}
+						.progress-ring-circle {
+							transition: stroke-dashoffset 0.35s;
+							transform-origin: 50% 50%;
+						}
+					`}</style>
+
+					{/* Header Section */}
+					<motion.div
+						initial={{ opacity: 0, y: -50 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8 }}
+						className="text-center mb-12"
+					>
+						<motion.h1 
+							className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.2, duration: 0.8 }}
+						>
+							Project Architecture
+						</motion.h1>
+						<motion.p 
+							className="text-xl text-gray-300 mb-6 max-w-3xl mx-auto leading-relaxed"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.4, duration: 0.8 }}
+						>
+							Navigate through the comprehensive software development lifecycle. 
+							Each phase represents a critical milestone in your project's journey.
+						</motion.p>
+						<motion.div 
+							className="flex justify-center items-center gap-4 text-sm text-gray-400"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.6, duration: 0.8 }}
+						>
+							<div className="flex items-center gap-2">
+								<FaCheckCircle className="text-green-400" />
+								<span>Completed</span>
 							</div>
-						))}
+							<div className="flex items-center gap-2">
+								<FaClock className="text-blue-400" />
+								<span>In Progress</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<FaCircle className="text-gray-400" />
+								<span>Not Started</span>
+							</div>
+						</motion.div>
+					</motion.div>
+
+					{/* Mobile Layout */}
+					<div className="block lg:hidden w-full max-w-2xl">
+						<div className="space-y-6">
+							{phases.map((phase, index) => (
+								<motion.div
+									key={phase.key}
+									initial={{ opacity: 0, x: -50 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ delay: index * 0.1, duration: 0.6 }}
+									className="relative"
+								>
+									<motion.div
+										className={`phase-card border ${phase.borderColor} rounded-2xl p-6 cursor-pointer group relative overflow-hidden ${phase.glowColor} hover:shadow-2xl transition-all duration-500`}
+										whileHover={{ scale: 1.02, y: -5 }}
+										onClick={() => handlePhaseClick(phase)}
+										onMouseEnter={() => setHoveredPhase(phase.key)}
+										onMouseLeave={() => setHoveredPhase(null)}
+									>
+										{/* Background Gradient */}
+										<div className={`absolute inset-0 bg-gradient-to-r ${phase.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+										
+										<div className="relative z-10">
+											<div className="flex items-start justify-between mb-4">
+												<div className="flex items-center gap-4">
+													<motion.div
+														className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${phase.color} flex items-center justify-center text-white text-2xl shadow-lg`}
+														whileHover={{ rotate: 360 }}
+														transition={{ duration: 0.6 }}
+													>
+														{phase.icon}
+													</motion.div>
+													<div>
+														<h3 className="text-xl font-bold text-white mb-1">{phase.title}</h3>
+														<p className="text-sm text-gray-400">{phase.subtitle}</p>
+													</div>
+												</div>
+												
+												{/* Progress Ring */}
+												<div className="relative w-16 h-16">
+													<svg className="progress-ring w-16 h-16" viewBox="0 0 64 64">
+														<circle
+															cx="32"
+															cy="32"
+															r="28"
+															stroke="rgba(75, 85, 99, 0.3)"
+															strokeWidth="4"
+															fill="transparent"
+														/>
+														<circle
+															className="progress-ring-circle"
+															cx="32"
+															cy="32"
+															r="28"
+															stroke={`url(#${phase.key}-gradient)`}
+															strokeWidth="4"
+															fill="transparent"
+															strokeDasharray={`${2 * Math.PI * 28}`}
+															strokeDashoffset={`${2 * Math.PI * 28 * (1 - phase.progress / 100)}`}
+														/>
+														<defs>
+															<linearGradient id={`${phase.key}-gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
+																<stop offset="0%" stopColor={phase.color.split('-')[1] === 'blue' ? '#3B82F6' : 
+																			   phase.color.split('-')[1] === 'purple' ? '#8B5CF6' :
+																			   phase.color.split('-')[1] === 'green' ? '#10B981' :
+																			   phase.color.split('-')[1] === 'yellow' ? '#F59E0B' :
+																			   phase.color.split('-')[1] === 'pink' ? '#EC4899' : '#6B7280'} />
+																<stop offset="100%" stopColor={phase.color.split('-')[3] === 'cyan' ? '#06B6D4' :
+																			   phase.color.split('-')[3] === 'pink' ? '#EC4899' :
+																			   phase.color.split('-')[3] === 'emerald' ? '#10B981' :
+																			   phase.color.split('-')[3] === 'orange' ? '#F97316' :
+																			   phase.color.split('-')[3] === 'rose' ? '#F43F5E' : '#64748B'} />
+															</linearGradient>
+														</defs>
+													</svg>
+													<div className="absolute inset-0 flex items-center justify-center">
+														<span className="text-sm font-bold text-white">{phase.progress}%</span>
+													</div>
+												</div>
+											</div>
+											
+											<p className="text-gray-300 mb-4 leading-relaxed">{phase.description}</p>
+											
+											<div className="flex items-center justify-between mb-4">
+												<div className={`flex items-center gap-2 px-3 py-1 rounded-full ${statusConfig[phase.status].bg}`}>
+													{statusConfig[phase.status].icon}
+													<span className={`text-sm font-medium ${statusConfig[phase.status].color}`}>
+														{phase.status}
+													</span>
+												</div>
+												
+												{phase.extraLinks && (
+													<div className="flex gap-2">
+														{phase.extraLinks.map((link, idx) => (
+															<a
+																key={idx}
+																href={link.url}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="flex items-center gap-1 px-3 py-1 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded-lg text-sm transition-colors"
+																onClick={(e) => e.stopPropagation()}
+															>
+																{link.icon}
+																{link.label}
+															</a>
+														))}
+													</div>
+												)}
+											</div>
+											
+											<div className="flex flex-wrap gap-2">
+												{phase.features.map((feature, idx) => (
+													<span key={idx} className="px-2 py-1 bg-gray-700/30 text-gray-300 text-xs rounded-md">
+														{feature}
+													</span>
+												))}
+											</div>
+										</div>
+									</motion.div>
+									
+									{/* Clean spacing between phases */}
+									{index < phases.length - 1 && (
+										<motion.div 
+											className="flex justify-center my-6"
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											transition={{ delay: index * 0.1 + 0.3 }}
+										>
+											<div className="w-1 h-8 bg-gray-700/30 rounded-full" />
+										</motion.div>
+									)}
+								</motion.div>
+							))}
+						</div>
+					</div>
+
+					{/* Desktop Layout */}
+					<div className="hidden lg:block w-full max-w-7xl">
+						<div className="grid grid-cols-3 gap-8 relative">
+							{/* Top Row */}
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[0]} index={0} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[1]} index={1} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[2]} index={2} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+							
+							{/* Bottom Row */}
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[5]} index={5} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[4]} index={4} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+							<div className="flex flex-col items-center">
+								<PhaseCard phase={phases[3]} index={3} onHover={setHoveredPhase} onClick={handlePhaseClick} />
+							</div>
+
+							{/* No connection lines - Clean layout */}
+						</div>
 					</div>
 				</div>
 			</div>
 		</>
 	);
 }
+
+// Phase Card Component
+const PhaseCard = ({ phase, index, onHover, onClick }) => {
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 50 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: index * 0.1, duration: 0.6 }}
+			className="w-full max-w-sm"
+		>
+			<motion.div
+				className={`phase-card border ${phase.borderColor} rounded-2xl p-6 cursor-pointer group relative overflow-hidden ${phase.glowColor} hover:shadow-2xl transition-all duration-500`}
+				whileHover={{ scale: 1.05, y: -10 }}
+				onClick={() => onClick(phase)}
+				onMouseEnter={() => onHover(phase.key)}
+				onMouseLeave={() => onHover(null)}
+			>
+				{/* Background Gradient */}
+				<div className={`absolute inset-0 bg-gradient-to-r ${phase.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+				
+				<div className="relative z-10">
+					<div className="flex items-center justify-between mb-4">
+						<motion.div
+							className={`w-14 h-14 rounded-xl bg-gradient-to-r ${phase.color} flex items-center justify-center text-white text-xl shadow-lg`}
+							whileHover={{ rotate: 360 }}
+							transition={{ duration: 0.6 }}
+						>
+							{phase.icon}
+						</motion.div>
+						
+						{/* Progress Ring */}
+						<div className="relative w-12 h-12">
+							<svg className="progress-ring w-12 h-12" viewBox="0 0 48 48">
+								<circle
+									cx="24"
+									cy="24"
+									r="20"
+									stroke="rgba(75, 85, 99, 0.3)"
+									strokeWidth="3"
+									fill="transparent"
+								/>
+								<circle
+									className="progress-ring-circle"
+									cx="24"
+									cy="24"
+									r="20"
+									stroke={`url(#${phase.key}-gradient)`}
+									strokeWidth="3"
+									fill="transparent"
+									strokeDasharray={`${2 * Math.PI * 20}`}
+									strokeDashoffset={`${2 * Math.PI * 20 * (1 - phase.progress / 100)}`}
+								/>
+								<defs>
+									<linearGradient id={`${phase.key}-gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
+										<stop offset="0%" stopColor={phase.color.split('-')[1] === 'blue' ? '#3B82F6' : 
+													   phase.color.split('-')[1] === 'purple' ? '#8B5CF6' :
+													   phase.color.split('-')[1] === 'green' ? '#10B981' :
+													   phase.color.split('-')[1] === 'yellow' ? '#F59E0B' :
+													   phase.color.split('-')[1] === 'pink' ? '#EC4899' : '#6B7280'} />
+										<stop offset="100%" stopColor={phase.color.split('-')[3] === 'cyan' ? '#06B6D4' :
+														 phase.color.split('-')[3] === 'pink' ? '#EC4899' :
+														 phase.color.split('-')[3] === 'emerald' ? '#10B981' :
+														 phase.color.split('-')[3] === 'orange' ? '#F97316' :
+														 phase.color.split('-')[3] === 'rose' ? '#F43F5E' : '#64748B'} />
+									</linearGradient>
+								</defs>
+							</svg>
+							<div className="absolute inset-0 flex items-center justify-center">
+								<span className="text-xs font-bold text-white">{phase.progress}%</span>
+							</div>
+						</div>
+					</div>
+					
+					<h3 className="text-lg font-bold text-white mb-1">{phase.title}</h3>
+					<p className="text-xs text-gray-400 mb-3">{phase.subtitle}</p>
+					<p className="text-gray-300 text-sm mb-4 leading-relaxed">{phase.description}</p>
+					
+					<div className="flex items-center justify-between mb-3">
+						<div className={`flex items-center gap-1 px-2 py-1 rounded-full ${statusConfig[phase.status].bg}`}>
+							{statusConfig[phase.status].icon}
+							<span className={`text-xs font-medium ${statusConfig[phase.status].color}`}>
+								{phase.status}
+							</span>
+						</div>
+						
+						{phase.extraLinks && (
+							<div className="flex gap-1">
+								{phase.extraLinks.map((link, idx) => (
+									<a
+										key={idx}
+										href={link.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 px-2 py-1 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 rounded text-xs transition-colors"
+										onClick={(e) => e.stopPropagation()}
+									>
+										{link.icon}
+									</a>
+								))}
+							</div>
+						)}
+					</div>
+					
+					<div className="flex flex-wrap gap-1">
+						{phase.features.slice(0, 2).map((feature, idx) => (
+							<span key={idx} className="px-2 py-1 bg-gray-700/30 text-gray-300 text-xs rounded">
+								{feature}
+							</span>
+						))}
+					</div>
+				</div>
+			</motion.div>
+		</motion.div>
+	);
+};

@@ -357,7 +357,7 @@ export default function Calendar() {
       setLoading(true);
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get('http://localhost:5000/api/events', {
+        const response = await axios.get('http://localhost:5000/events', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -465,7 +465,7 @@ export default function Calendar() {
   
 
 
-const API_BASE_URL = 'http://localhost:5000/api/events';
+const API_BASE_URL = 'http://localhost:5000/events';
 
 const handleSaveEvent = async (eventData) => {
   const token = localStorage.getItem('token'); // Or whatever your key is

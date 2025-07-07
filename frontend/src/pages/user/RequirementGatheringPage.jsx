@@ -11,7 +11,7 @@ const RequirementGatheringPage = () => {
   const { user } = useAuth();
   const { getProject } = useProject();
   
-  // Refs for scrolling
+  // Refs for scrollingnpm
   const mainContainerRef = useRef(null);
   const sidebarRef = useRef(null);
   const contentRef = useRef(null);
