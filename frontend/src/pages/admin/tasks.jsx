@@ -200,9 +200,7 @@ const TaskCard = ({ task, onDelete, onStatusChange, onEdit }) => {
 };
 
 // Task Form Modal Component
-const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectId }) => {
-  // ✅ projectId is now safely accessible here
-
+const  TaskFormModal = ({ isOpen, onClose, task, onSave, projectId }) => {
   const initialFormState = task ? {
     ...task,
     dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
@@ -222,36 +220,35 @@ const TaskFormModal = ({ isOpen, onClose, task, onSave, projectMembers, projectI
 
   const [formData, setFormData] = useState(initialFormState);
   const [selectedTag, setSelectedTag] = useState('');
- const [projectmember , setProjectmember] = useState('');
- const [isFormOpen, setIsFormOpen] = useState(false);
- const [submitting, setSubmitting] = useState(false);
+  const [projectmember, setProjectmember] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchProjectMembers = async () => {
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await axios.get(`/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const members = res.data.teamMembers || []; // adjust according to actual backend shape
+      setProjectmember(members);
+    } catch (error) {
+      console.error('Failed to fetch project members:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectMembers();
+    }
+  }, [projectId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-const fetchProjectMembers = async () => {
-  try {
-    const token = localStorage.getItem('userToken');
-    const res = await axios.get(`/projects/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    console.log(res);
-
-    const members = res.data.project.teamMembers || [];
-    setProjectmember(members);
-  } catch (error) {
-    console.error('Failed to fetch project members:', error);
-  }
-};
-
-useEffect(() => {
-  if (projectId) {
-    fetchProjectMembers();
-  }
-}, [projectId]);
 
   const handleAddTag = () => {
     if (selectedTag && !formData.tags.includes(selectedTag)) {
@@ -281,33 +278,31 @@ useEffect(() => {
     }));
   };
 
- // Replace this handler function
-const handleAssigneeChange = (e) => {
-  const memberId = e.target.value;
-  if (memberId === '') {
-    setFormData(prev => ({ ...prev, assignedTo: null }));
-  } else {
-    const selectedMember = projectmember.find(member => member._id === memberId);
-    setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
-  }
-};
+  const handleAssigneeChange = (e) => {
+    const memberId = e.target.value;
+    if (memberId === '') {
+      setFormData(prev => ({ ...prev, assignedTo: null }));
+    } else {
+      const selectedMember = projectmember.find(member => member._id === memberId);
+      setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
+    }
+  };
 
-const { createTask } = useTask();
+  const { createTask } = useTask();
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (submitting) return;
-  setSubmitting(true);
-  try {
-    // Only call onSave, which triggers the backend call in parent
-    if (onSave) await onSave(formData);
-    onClose();
-  } catch (error) {
-    console.error('Error creating the task:', error.response?.data || error.message);
-  } finally {
-    setSubmitting(false);
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      if (onSave) await onSave(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error creating the task:', error.response?.data || error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -332,6 +327,7 @@ const handleSubmit = async (e) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Task Title</label>
             <input
@@ -340,11 +336,12 @@ const handleSubmit = async (e) => {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
               placeholder="Enter task title"
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
             <textarea
@@ -353,11 +350,12 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               required
               rows="4"
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white resize-none"
               placeholder="Enter task description"
             ></textarea>
           </div>
 
+          {/* Priority & Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Priority</label>
@@ -365,7 +363,7 @@ const handleSubmit = async (e) => {
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -380,7 +378,7 @@ const handleSubmit = async (e) => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
@@ -391,6 +389,7 @@ const handleSubmit = async (e) => {
             </div>
           </div>
 
+          {/* Due Date & Tags */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Due Date</label>
@@ -400,17 +399,18 @@ const handleSubmit = async (e) => {
                 value={formData.dueDate}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
               />
             </div>
 
+            {/* Tags */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Tags</label>
               <div className="flex">
                 <select
                   value={selectedTag}
                   onChange={(e) => setSelectedTag(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white"
                 >
                   <option value="">Select a tag</option>
                   <option value="Frontend">Frontend</option>
@@ -425,7 +425,7 @@ const handleSubmit = async (e) => {
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-lg transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-lg"
                 >
                   <FaPlus />
                 </button>
@@ -458,22 +458,24 @@ const handleSubmit = async (e) => {
             </div>
           </div>
 
+          {/* Assignee Dropdown */}
           <div>
-          <select
-  value={formData.assignedTo ? formData.assignedTo.id : ''}
-  onChange={handleAssigneeChange}
-  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
->
-  <option value="">Select team member</option>
-  {projectMembers.map(member => (
-    <option key={member._id} value={member._id}>
-      {member.name} ({member.role})
-    </option>
-  ))}
-</select>
-
+            <label className="block text-sm font-medium text-gray-300 mb-1">Assign To</label>
+            <select
+              value={formData.assignedTo ? formData.assignedTo._id : ''}
+              onChange={handleAssigneeChange}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            >
+              <option value="">Select team member</option>
+              {projectmember.map(member => (
+                <option key={member._id} value={member._id}>
+                  {member.name} ({member.role})
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* Time Tracking */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Time Tracking</label>
             <div className="grid grid-cols-2 gap-4">
@@ -485,7 +487,7 @@ const handleSubmit = async (e) => {
                   value={formData.timeTracking.estimated}
                   onChange={handleTimeTrackingChange}
                   min="0"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                 />
               </div>
               <div>
@@ -496,23 +498,24 @@ const handleSubmit = async (e) => {
                   value={formData.timeTracking.spent}
                   onChange={handleTimeTrackingChange}
                   min="0"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                 />
               </div>
             </div>
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg"
             >
               {task ? 'Update Task' : 'Create Task'}
             </button>
@@ -521,76 +524,7 @@ const handleSubmit = async (e) => {
       </motion.div>
     </div>
   );
-};
-
-// Team Member Card Component
-const TeamMemberCard = ({ member }) => {
-  const getCompletionRate = () => {
-    if (!member.tasks || member.tasks.length === 0) return 0;
-    const completedTasks = member.tasks.filter(task => task.status === 'Completed').length;
-    return Math.round((completedTasks / member.tasks.length) * 100);
-  };
-
-  const completionRate = getCompletionRate();
-
-  return (
-    <motion.div 
-      whileHover={{ y: -5 }}
-      className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg"
-    >
-      <div className="flex items-center mb-4">
-        <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium mr-4">
-          {member.name.charAt(0)}
-        </div>
-        <div>
-          <h3 className="text-white font-medium">{member.name}</h3>
-          <p className="text-gray-400 text-sm">{member.role}</p>
-        </div>
-      </div>
-      
-      <div className="space-y-3">
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-400">Tasks Completion</span>
-            <span className="text-xs font-medium text-white">{completionRate}%</span>
-          </div>
-          <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full ${completionRate < 30 ? 'bg-red-500' : completionRate < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
-              style={{ width: `${completionRate}%` }}
-            ></div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Assigned</p>
-            <p className="text-lg font-semibold text-white">{member.tasks ? member.tasks.length : 0}</p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Completed</p>
-            <p className="text-lg font-semibold text-white">{member.tasks ? member.tasks.filter(task => task.status === 'Completed').length : 0}</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Hours Spent</p>
-            <p className="text-lg font-semibold text-white">
-              {member.tasks ? member.tasks.reduce((total, task) => total + (task.timeTracking?.spent || 0), 0) : 0}
-            </p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-2">
-            <p className="text-xs text-gray-400 mb-1">Estimated</p>
-            <p className="text-lg font-semibold text-white">
-              {member.tasks ? member.tasks.reduce((total, task) => total + (task.timeTracking?.estimated || 0), 0) : 0}
-            </p>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+}
 
 // Main Tasks Component
 function Tasks() {
