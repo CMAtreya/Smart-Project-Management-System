@@ -14,7 +14,7 @@ import { useAuth } from "../contexts/AuthContext";
 import NotificationDropdown from './NotificationDropdown';
 // Add this at the top with your other imports
 import { useNotifications } from '../contexts/NotificationsContext'; // ✅ corrected hook name
-import qurelLogo from "../../public/qurel.png";
+import qurelLogo from "../assets/qurel.png";
 
 const Navbar = () => {
   const { user, logout } = useAuth();

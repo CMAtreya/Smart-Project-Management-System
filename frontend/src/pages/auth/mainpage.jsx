@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 import { useNavigate } from 'react-router-dom';
-import qurelLogo from "../../../public/qurel.png";
+import qurelLogo from "../../assets/qurel.png";
 
 import { FaTasks, FaChartBar, FaCalendarAlt, FaBell, FaHeartbeat, FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa';
 import '../../index.css';
