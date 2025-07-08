@@ -60,25 +60,23 @@ router.get('/projects', authenticateUser, async (req, res) => {
   }
 });
 
-// GET /api/projects/:id
 router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-     
-  .populate('teamMembers', 'name email role')
-  .populate('createdBy', 'name email');
-
+      .populate('teamMembers', 'name email role')
+      .populate('createdBy', 'name email');
 
     if (!project) {
       return res.status(404).json({ message: `No project found with id ${req.params.id}` });
     }
 
-    res.status(200).json({ project });
+    res.status(200).json(project); // you don’t need to wrap in { project }
   } catch (error) {
     console.error('Get project error:', error);
     res.status(500).json({ message: 'Failed to fetch project', error: error.message });
   }
 });
+
 
 // POST /api/projects
 // POST /api/projects

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaUserFriends, FaRobot, FaComments, FaProjectDiagram, FaCalendarAlt, FaTable, FaHistory, FaFileExport, FaPlus, FaVoteYea, FaCheck, FaTimes, FaArrowLeft, FaRocket, FaRegClock, FaLightbulb, FaDatabase, FaCog, FaFileUpload, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProject } from '../../contexts/ProjectContext';
+import { getAISuggestions } from '../../services/aiService'; // make sure this is imported
 
 const RequirementGatheringPage = () => {
   const navigate = useNavigate();
@@ -121,17 +122,25 @@ const RequirementGatheringPage = () => {
   };
 
   // AI extraction functionality
-  const handleAIExtract = () => {
-    if (aiInput.trim()) {
-      const sentences = aiInput.split(/[.!?]+/).filter(s => s.trim().length > 10);
-      const newSuggestions = sentences.map(sentence => ({
+  const handleAIExtract = async () => {
+    if (!aiInput.trim()) return;
+  
+    const token = localStorage.getItem('token'); // or use from context if applicable
+  
+    try {
+      const rawSuggestions = await getAISuggestions(aiInput, token); // call backend
+  
+      const newSuggestions = rawSuggestions.map(text => ({
         id: Date.now() + Math.random(),
-        text: sentence.trim(),
-        confidence: Math.floor(Math.random() * 30) + 70, // 70-100%
+        text,
+        confidence: Math.floor(Math.random() * 30) + 70, // 70–100%
         category: ['Security', 'Analytics', 'Communication', 'General'][Math.floor(Math.random() * 4)]
       }));
+  
       setAiSuggestions([...aiSuggestions, ...newSuggestions]);
       setAiInput('');
+    } catch (error) {
+      console.error('AI suggestion fetch failed:', error);
     }
   };
 
@@ -150,7 +159,7 @@ const RequirementGatheringPage = () => {
     setRequirements([...requirements, newRequirement]);
     setAiSuggestions(aiSuggestions.filter(s => s.id !== suggestion.id));
   };
-
+  
   // Add new requirement
   const handleAddRequirement = () => {
     if (newReq.trim()) {

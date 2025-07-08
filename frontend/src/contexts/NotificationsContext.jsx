@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import NotificationService from "../services/NotificationsService";
+import axios from 'axios'; // Needed if you're directly using axios in fetchNotifications
 import { useAuth } from './AuthContext';
 
 const NotificationsContext = createContext();
@@ -20,8 +21,10 @@ export const NotificationsProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // ✅ Properly fetch notifications + counts
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user || !user._id) return;
+
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -29,8 +32,8 @@ export const NotificationsProvider = ({ children }) => {
         NotificationService.getAll(user._id, token),
         NotificationService.getCounts(user._id, token),
       ]);
-      setNotifications(fetched);
-      setUnreadCount(counts.unread);
+      setNotifications(fetched || []);
+      setUnreadCount(counts?.unread || 0);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
@@ -39,13 +42,11 @@ export const NotificationsProvider = ({ children }) => {
   };
 
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!user || !user._id) return;
     try {
       const token = localStorage.getItem('token');
       await NotificationService.markAllRead(user._id, token);
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, isRead: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all as read:', error);
@@ -67,14 +68,18 @@ export const NotificationsProvider = ({ children }) => {
     }
   };
 
-  // Automatically refresh notifications every 10 seconds
+  // ✅ Auto-fetch every 100 seconds
   useEffect(() => {
-    if (user) {
+    if (!user || !user._id) return;
+
+    fetchNotifications(); // Initial call
+
+    const interval = setInterval(() => {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 10000); // 10 seconds
-      return () => clearInterval(interval);
-    }
-  }, [user]);
+    }, 100000); // 100 seconds
+
+    return () => clearInterval(interval); // Clean up
+  }, [user?._id]);
 
   return (
     <NotificationsContext.Provider

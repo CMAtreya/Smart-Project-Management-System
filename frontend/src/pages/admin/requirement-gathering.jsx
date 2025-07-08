@@ -75,44 +75,45 @@ export default function AdminRequirementGathering() {
     };
     fetchData();
   }, []);
-
-  // AI Extraction
+  // AI extraction functionality
   const handleAIExtract = async () => {
     if (!aiInput.trim()) return;
+  
+    const token = localStorage.getItem('token'); // or use from context if applicable
+  
     try {
-      setActionLoading(true);
-      const res = await axios.post(`${API}/extract`, { text: aiInput });
-      setAiSuggestions(res.data.requirements);
+      const rawSuggestions = await getAISuggestions(aiInput, token); // call backend
+  
+      const newSuggestions = rawSuggestions.map(text => ({
+        id: Date.now() + Math.random(),
+        text,
+        confidence: Math.floor(Math.random() * 30) + 70, // 70–100%
+        category: ['Security', 'Analytics', 'Communication', 'General'][Math.floor(Math.random() * 4)]
+      }));
+  
+      setAiSuggestions([...aiSuggestions, ...newSuggestions]);
       setAiInput('');
-      setNotification('AI extraction completed!');
     } catch (error) {
-      console.error('AI extraction error:', error);
-      setNotification('AI extraction failed');
-    } finally {
-      setActionLoading(false);
+      console.error('AI suggestion fetch failed:', error);
     }
   };
 
-  // Add requirement (manual or from AI)
-  const handleAddRequirement = async (req) => {
-    setActionLoading(true);
-    setTimeout(() => {
-      const newRequirement = req || {
-        _id: Date.now().toString(),
-        title: newReq,
-        description: newReqDescription,
-        priority: newReqPriority,
-        status: 'Pending',
-        stakeholders: [],
-      };
-      setRequirements(prev => [...prev, newRequirement]);
-      setNewReq('');
-      setNewReqDescription('');
-      setNewReqPriority('Medium');
-      setActionLoading(false);
-      setNotification('Requirement added successfully!');
-    }, 500);
+  // Add requirement from AI suggestion
+  const handleAddFromAI = (suggestion) => {
+    const newRequirement = {
+      id: Date.now(),
+      text: suggestion.text,
+      status: 'Proposed',
+      votes: 0,
+      comments: [],
+      version: 1,
+      priority: 'Medium',
+      category: suggestion.category
+    };
+    setRequirements([...requirements, newRequirement]);
+    setAiSuggestions(aiSuggestions.filter(s => s.id !== suggestion.id));
   };
+  
 
   // Edit requirement
   const handleEditRequirement = async () => {
