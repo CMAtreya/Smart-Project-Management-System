@@ -70,12 +70,13 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: `No project found with id ${req.params.id}` });
     }
 
-    res.status(200).json(project); // you don’t need to wrap in { project }
+    res.status(200).json({ project }); // ✅ Fixed here
   } catch (error) {
     console.error('Get project error:', error);
     res.status(500).json({ message: 'Failed to fetch project', error: error.message });
   }
 });
+
 
 
 // POST /api/projects
