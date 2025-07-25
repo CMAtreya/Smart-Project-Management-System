@@ -90,6 +90,7 @@ app.use('/events', require('./routes/calender'));
 app.use('/messages', require('./routes/messages'));
 app.use('/notifications', require('./routes/notification'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/screentime', require('./routes/screentime'));
 
 app.get('/', (req, res) => {
   res.send('Project Management API is running');

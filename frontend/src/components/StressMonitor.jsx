@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { FaRegClock, FaExclamationTriangle, FaDesktop, FaCode, FaGithub, FaPalette, FaGlobe } from "react-icons/fa";
+import { logScreenTime, getTodayScreenTime } from '../services/screentime';
 
 // Simulate backend API calls
 const mockAPI = {
