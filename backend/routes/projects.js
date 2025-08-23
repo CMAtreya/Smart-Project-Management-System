@@ -215,27 +215,47 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/projects/:id
+// DELETE /projects/:id
 router.delete('/:id', async (req, res) => {
   try {
+    console.log('Deleting project with ID:', req.params.id);
+
     const project = await Project.findById(req.params.id);
-
     if (!project) {
-      return res.status(404).json({ message: `No project found with id ${req.params.id}` });
+      console.log('No project found');
+      return res.status(404).json({ message: 'Project not found' });
     }
 
+    // Authorization check
     if (req.user.role !== 'admin' && project.createdBy.toString() !== req.user.userId) {
-      return res.status(403).json({ message: 'Not authorized to delete this project' });
+      console.log('Unauthorized');
+      return res.status(403).json({ message: 'Unauthorized' });
     }
 
+    // Remove project reference from all team members
+    if (project.teamMembers && project.teamMembers.length > 0) {
+      await Promise.all(project.teamMembers.map(async (memberId) => {
+        console.log(`Removing project from user: ${memberId}`);
+        await User.findByIdAndUpdate(memberId, {
+          $pull: { projects: project._id }
+        });
+      }));
+    }
+
+    // Delete the project itself
     await Project.findByIdAndDelete(req.params.id);
+    console.log('Project deleted successfully');
 
     res.status(200).json({ message: 'Project deleted successfully' });
   } catch (error) {
     console.error('Delete project error:', error);
-    res.status(500).json({ message: 'Failed to delete project', error: error.message });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
+
+   
+
+
 
 // PATCH /api/projects/:id/progress
 router.patch('/:id/progress', async (req, res) => {

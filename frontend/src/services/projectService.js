@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL from environment variable or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -70,6 +70,7 @@ const projectService = {
   // Delete project
   deleteProject: async (projectId) => {
     try {
+      console.log(" this is called to delete project  service file ");
       const response = await api.delete(`/projects/${projectId}`);
       return response.data;
     } catch (error) {

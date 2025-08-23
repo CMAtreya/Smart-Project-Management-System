@@ -613,9 +613,12 @@ useEffect(() => {
 
   const handleDeleteProject = async (projectId) => {
     try {
+      console.log('Deleting project with ID:', projectId);
       await deleteProject(projectId);
+      fetchProjects(); // Refresh projects after deletion
     } catch (error) {
       // Error handled in context
+      console.error('Error deleting project:', error);
     }
   };
 

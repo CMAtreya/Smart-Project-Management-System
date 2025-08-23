@@ -117,49 +117,49 @@ function CircularProgress({ value, size = 140, stroke = 14 }) {
 }
 
 // Component breakdown card
-function StressComponent({ icon: Icon, label, value, weight, raw, maxValue, unit = '' }) {
+function StressComponent({
+  icon: Icon,
+  label,
+  value = 0,
+  weight = 0,
+  raw,
+  maxValue,
+  unit = ''
+}) {
   const percentage = Math.round(value);
   const color = getColor(value);
-  
+
   return (
-    <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600">
+    <div className="p-3 rounded-lg border" style={{ backgroundColor: 'rgba(55,65,81,0.5)', borderColor: '#4B5563' }}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Icon size={16} className="text-gray-400" />
-          <span className="text-sm font-medium text-gray-300">{label}</span>
+          {Icon && <Icon size={16} className="text-gray-400" />}
+          {label && <span className="text-sm font-medium text-gray-300">{label}</span>}
         </div>
         <span className="text-xs text-gray-400">{weight}%</span>
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-xs text-gray-400">
-            {
-  typeof raw === 'string'
-    ? raw
-    : typeof raw === 'number'
-      ? `${raw.toFixed(1)}${unit}`
-      : '0.0' + unit
-}
-
+            {typeof raw === 'number' ? `${raw.toFixed(1)}${unit}` : String(raw || '')}
           </span>
           <span className="text-sm font-bold" style={{ color }}>
             {percentage}%
           </span>
         </div>
-        
-        {/* Mini progress bar */}
-        <div className="w-full bg-gray-600 rounded-full h-1.5">
-          <div 
+
+        <div className="w-full rounded-full h-1.5 bg-gray-600">
+          <div
             className="h-1.5 rounded-full transition-all duration-500"
-            style={{ 
+            style={{
               width: `${percentage}%`,
-              backgroundColor: color
+              backgroundColor: color,
             }}
           />
         </div>
-        
-        {maxValue && (
+
+        {maxValue !== undefined && (
           <div className="text-xs text-gray-500">
             Max: {maxValue}{unit}
           </div>

@@ -44,7 +44,7 @@ const RequirementGatheringPage = () => {
   ]);
   // Remove: const [meetings, setMeetings] = useState([...]);
   const [loading, setLoading] = useState(true);
-  const [projectId, setProjectId] = useState(null);
+const [projectOctId, setProjectOctId] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const statusColors = {
@@ -93,7 +93,7 @@ const RequirementGatheringPage = () => {
     };
   
     fetchProjectData();
-  }, [projectId, getProject]);
+  }, [projectOctId, getProject]);
 
   // Handle scroll events
   useEffect(() => {

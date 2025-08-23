@@ -94,8 +94,11 @@ export const ProjectProvider = ({ children }) => {
 
   const deleteProject = async (projectId) => {
     try {
-      await axios.delete(`/projects/${projectId}`);
+      console.log(" this is called to delete project ")
+     const res= await axios.delete(`/projects/${projectId}`);
       setProjects(projects.filter(project => project._id !== projectId));
+     console.log(" this is called to delete project  service file , response: ", res  );
+      return res.data;
       toast.success('Project deleted successfully');
     } catch (error) {
       console.error('Error deleting project:', error);
