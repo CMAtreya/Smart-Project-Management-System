@@ -98,7 +98,7 @@ Smart-Project-Management-System/
 
 ##  Architecture Diagram
 
-![System Architecture](frontend/public/architecture.png)
+![System Architecture](assets/architecture.png)
 
 
 ## License

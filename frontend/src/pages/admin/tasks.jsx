@@ -223,21 +223,27 @@ const  TaskFormModal = ({ isOpen, onClose, task, onSave, projectId }) => {
   const [projectmember, setProjectmember] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchProjectMembers = async () => {
-    try {
-      const token = localStorage.getItem('userToken');
-      const res = await axios.get(`/projects/${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const members = res.data.teamMembers || []; // adjust according to actual backend shape
-      setProjectmember(members);
-    } catch (error) {
-      console.error('Failed to fetch project members:', error);
-    }
-  };
+ const fetchProjectMembers = async () => {
+  try {
+    const token = localStorage.getItem('userToken');
+    const res = await axios.get(`/projects/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log('Project API Response:', res.data); // Debug log
+    
+    // Fix the data path - check your actual API response structure
+    const members = res.data.project?.teamMembers || res.data.teamMembers || [];
+    console.log('Extracted members:', members); // Debug log
+    
+    setProjectmember(members);
+  } catch (error) {
+    console.error('Failed to fetch project members:', error);
+    // Add user feedback
+    toast.error('Failed to load team members');
+  }
+};
 
   useEffect(() => {
     if (projectId) {
@@ -278,16 +284,17 @@ const  TaskFormModal = ({ isOpen, onClose, task, onSave, projectId }) => {
     }));
   };
 
-  const handleAssigneeChange = (e) => {
-    const memberId = e.target.value;
-    if (memberId === '') {
-      setFormData(prev => ({ ...prev, assignedTo: null }));
-    } else {
-      const selectedMember = projectmember.find(member => member._id === memberId);
-      setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
-    }
-  };
-
+ const handleAssigneeChange = (e) => {
+  const memberId = e.target.value;
+  if (memberId === '') {
+    setFormData(prev => ({ ...prev, assignedTo: null }));
+  } else {
+    const selectedMember = projectmember.find(
+      member => member._id.toString() === memberId
+    );
+    setFormData(prev => ({ ...prev, assignedTo: selectedMember }));
+  }
+};
   const { createTask } = useTask();
 
   const handleSubmit = async (e) => {
@@ -459,21 +466,42 @@ const  TaskFormModal = ({ isOpen, onClose, task, onSave, projectId }) => {
           </div>
 
           {/* Assignee Dropdown */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Assign To</label>
-            <select
-              value={formData.assignedTo ? formData.assignedTo._id : ''}
-              onChange={handleAssigneeChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-            >
-              <option value="">Select team member</option>
-              {projectmember.map(member => (
-                <option key={member._id} value={member._id}>
-                  {member.name} ({member.role})
-                </option>
-              ))}
-            </select>
-          </div>
+        <div>
+  <label className="block text-sm font-medium text-gray-300 mb-1">
+    Assign To
+  </label>
+  <select
+    value={formData.assignedTo ? formData.assignedTo._id?.toString() || formData.assignedTo : ''}
+    onChange={handleAssigneeChange}
+    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+  >
+    <option value="">Select team member</option>
+    {projectmember.length > 0 ? (
+      projectmember.map(member => {
+        // Debug each member
+        console.log('Rendering member:', member);
+        return (
+          <option 
+            key={member._id?.toString() || member.id || member.email} 
+            value={member._id?.toString() || member.id || ''}
+          >
+            {member.name || member.email || 'Unnamed Member'}
+            {member.role ? ` (${member.role})` : ''}
+          </option>
+        );
+      })
+    ) : (
+      <option value="" disabled>
+        {projectmember === null ? 'Loading team members...' : 'No team members found'}
+      </option>
+    )}
+  </select>
+  
+  {/* Debug info - remove in production */}
+  <div className="text-xs text-gray-500 mt-1">
+    Debug: {projectmember.length} members loaded
+  </div>
+</div>
 
           {/* Time Tracking */}
           <div>

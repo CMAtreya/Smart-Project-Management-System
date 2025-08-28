@@ -54,37 +54,40 @@ const Loader = () => (
   const [activeChat, setActiveChat] = useState("Team Chat");
   
   // Simulate loading
-  useEffect(() => {
+   useEffect(() => {
     const loadGoogleAPI = () => {
       if (window.gapi) {
-        window.gapi.load('client:auth2', () => {
-          window.gapi.client.init({
-            apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
-            clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-            scope: 'https://www.googleapis.com/auth/calendar.events'
-          }).then(() => {
-            setIsGoogleApiLoaded(true);
-            console.log('Google API loaded successfully');
-          }).catch((error) => {
-            console.error('Error loading Google API:', error);
-            // Fallback to manual link generation
-            setIsGoogleApiLoaded(false);
-          });
+        window.gapi.load("client:auth2", () => {
+          window.gapi.client
+            .init({
+              apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
+              clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+              discoveryDocs: [
+                "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+              ],
+              scope: "https://www.googleapis.com/auth/calendar.events",
+            })
+            .then(() => {
+              setIsGoogleApiLoaded(true);
+              console.log("✅ Google API loaded successfully");
+            })
+            .catch((error) => {
+              console.error("❌ Error loading Google API:", error);
+              setIsGoogleApiLoaded(false); // fallback
+            });
         });
       } else {
-        // Fallback if Google API is not available
-        setIsGoogleApiLoaded(false);
+        setIsGoogleApiLoaded(false); // fallback if gapi missing
       }
     };
 
-    // Load Google API script if not already loaded
+    // Inject Google API script if not already available
     if (!window.gapi) {
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
+      const script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
       script.onload = loadGoogleAPI;
       script.onerror = () => {
-        console.error('Failed to load Google API script');
+        console.error("❌ Failed to load Google API script");
         setIsGoogleApiLoaded(false);
       };
       document.head.appendChild(script);
@@ -92,6 +95,13 @@ const Loader = () => (
       loadGoogleAPI();
     }
   }, []);
+
+  // Example: react to changes of isGoogleApiLoaded
+  useEffect(() => {
+    if (isGoogleApiLoaded) {
+      console.log("🎉 You can now use Google Calendar API!");
+    }
+  }, [isGoogleApiLoaded]);
 
   // Fetch tasks when component mounts
   useEffect(() => {

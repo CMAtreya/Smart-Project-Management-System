@@ -5,6 +5,7 @@ const Event = require('../models/calender');
 // Create Event
 router.post('/', async (req, res) => {
   try {
+    console.log("enterd the api ")
     const newEvent = new Event(req.body);
     const saved = await newEvent.save();
     res.status(201).json(saved);

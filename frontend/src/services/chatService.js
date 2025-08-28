@@ -383,7 +383,7 @@ class ChatService {
 const chatService = new ChatService();
 
 // Export functions for direct use
-export const fetchMessages = () => chatService.getMessages();
+export const fetchMessages = async () => chatService.getMessages();
 export const saveMessages = (chatRoom, messages) => {
   // If only one parameter is provided, assume it's the messages array
   if (arguments.length === 1 && Array.isArray(chatRoom)) {

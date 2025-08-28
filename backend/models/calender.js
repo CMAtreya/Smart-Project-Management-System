@@ -17,7 +17,7 @@ const eventSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['meeting', 'deadline', 'task', 'event', 'reminder'], // Accept lowercase
-    required: true,
+    required: false,
   },
   startTime: {
     type: String, // You can also use Date if combining date+time
@@ -29,8 +29,8 @@ const eventSchema = new mongoose.Schema({
   },
   priority: {
     type: String,
-    enum: ['low', 'medium', 'high', 'urgent'], // Accept lowercase
-    default: 'medium',
+    enum: ['Low', 'Medium', 'High', ], // Accept lowercase
+    default: 'Medium',
   },
   location: {
     type: String,

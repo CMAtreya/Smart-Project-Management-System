@@ -71,6 +71,7 @@ router.get('/:id', async (req, res) => {
     }
 
     res.status(200).json({ project }); // ✅ Fixed here
+    console.log(" this is thr route for fetching the team members ", project.teamMembers);
   } catch (error) {
     console.error('Get project error:', error);
     res.status(500).json({ message: 'Failed to fetch project', error: error.message });
