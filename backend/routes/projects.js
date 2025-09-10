@@ -4,6 +4,8 @@ const Project = require('../models/Project');
 const { authenticateUser } = require('../middleware/auth');
 const User = require('../models/User.js'); // ✅ Make sure this is added
 const ChatRoom = require('../models/ChatRoom');
+const Notification = require('../models/Notification'); 
+
 
 router.use(authenticateUser);
 
@@ -82,7 +84,6 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/projects
 // POST /api/projects
-const Notification = require('../models/notification'); // import at the top if not already
 
 router.post('/create', async (req, res) => {
   try {
@@ -208,6 +209,18 @@ router.patch('/:id', async (req, res) => {
     )
       .populate('teamMembers', 'name email')
       .populate('createdBy', 'name email');
+
+
+      const allRecipients= [updatedProject.createdBy._id, ...updatedProject.teamMembers.map(member => member._id)];
+
+      const notifications = allRecipients.map(userId => ({ 
+        user:userId,
+        type:'project_updated',
+        message:`Project "${updatedProject.title}" has been updated `,
+        link:`/projects/${updatedProject._id}`,
+      }));
+      
+      await Notification.insertMany(notifications);
 
     res.status(200).json({ project: updatedProject });
   } catch (error) {

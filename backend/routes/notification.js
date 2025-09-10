@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateUser } = require('../middleware/auth');
-const Notification = require('../models/notification');
+const Notification = require('../models/Notification');
 
 // ✅ Apply authentication middleware to all routes
 router.use(authenticateUser);
